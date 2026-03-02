@@ -7,9 +7,9 @@ import logging
 from pathlib import Path
 
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Contact, Product
+from .models import Category, Contact, Product
 
 ENCODING = "utf-8"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -40,6 +40,12 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
+def product_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Страница одного товара: все данные продукта по pk."""
+    product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
+    return render(request, "catalog/product_detail.html", {"product": product})
+
+
 def home(request: HttpRequest) -> HttpResponse:
     """Главная страница. В консоль (лог) выводятся последние 5 созданных продуктов."""
     latest = Product.objects.order_by("-created_at")[:LAST_PRODUCTS_LIMIT]
@@ -51,14 +57,82 @@ def home(request: HttpRequest) -> HttpResponse:
             product.price,
             product.category.name,
         )
-    return render(request, "catalog/home.html")
+    return render(
+        request,
+        "catalog/home.html",
+        {"latest_products": latest},
+    )
 
 
 def contacts(request: HttpRequest) -> HttpResponse:
-    """Страница контактов: данные из модели Contact (заполняются в админке)."""
+    """Страница контактов: форма обратной связи и список контактов из БД."""
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        message = request.POST.get("message", "").strip()
+        if name and email and message:
+            Contact.objects.create(name=name, email=email, message=message)
+        return redirect("catalog:contacts")
     contact_list = Contact.objects.all()
     return render(
         request,
         "catalog/contacts.html",
         {"contact_list": contact_list},
+    )
+
+
+def catalog_list(request: HttpRequest) -> HttpResponse:
+    """Страница каталога: список товаров с фильтрами по категории, цене и сортировкой."""
+    categories = Category.objects.all()
+    products = Product.objects.select_related("category")
+
+    category_id = request.GET.get("category")
+    if category_id:
+        try:
+            products = products.filter(category_id=int(category_id))
+        except ValueError:
+            pass
+
+    price = request.GET.get("price")
+    if price == "low":
+        products = products.filter(price__lt=1000)
+    elif price == "medium":
+        products = products.filter(price__gte=1000, price__lte=5000)
+    elif price == "high":
+        products = products.filter(price__gt=5000)
+
+    sort = request.GET.get("sort", "name")
+    if sort == "price-asc":
+        products = products.order_by("price", "name")
+    elif sort == "price-desc":
+        products = products.order_by("-price", "name")
+    else:
+        products = products.order_by("name")
+
+    return render(
+        request,
+        "catalog/catalog.html",
+        {"products": products, "categories": categories},
+    )
+
+
+def category_index(request: HttpRequest) -> HttpResponse:
+    """Страница «Категория»: товары первой категории или пустой список."""
+    category = Category.objects.first()
+    products = category.products.all().order_by("name") if category else []
+    return render(
+        request,
+        "catalog/category.html",
+        {"category": category, "products": products},
+    )
+
+
+def category_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Страница категории по pk: товары выбранной категории."""
+    category = get_object_or_404(Category, pk=pk)
+    products = category.products.all().order_by("name")
+    return render(
+        request,
+        "catalog/category.html",
+        {"category": category, "products": products},
     )
