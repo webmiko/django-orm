@@ -1,0 +1,65 @@
+[
+{
+    "model": "catalog.category",
+    "pk": 1,
+    "fields": {
+        "name": "Электроника",
+        "description": "Техника и гаджеты"
+    }
+},
+{
+    "model": "catalog.category",
+    "pk": 2,
+    "fields": {
+        "name": "Одежда",
+        "description": "Одежда и аксессуары"
+    }
+},
+{
+    "model": "catalog.category",
+    "pk": 3,
+    "fields": {
+        "name": "Продукты",
+        "description": "Продукты питания"
+    }
+},
+{
+    "model": "catalog.product",
+    "pk": 1,
+    "fields": {
+        "name": "Смартфон",
+        "description": "Умный телефон",
+        "image": "",
+        "category": 1,
+        "price": "29999.99",
+        "created_at": "2026-03-02T12:10:41.886Z",
+        "updated_at": "2026-03-02T12:10:41.887Z"
+    }
+},
+{
+    "model": "catalog.product",
+    "pk": 2,
+    "fields": {
+        "name": "Ноутбук",
+        "description": "Портативный компьютер",
+        "image": "",
+        "category": 1,
+        "price": "89999.00",
+        "created_at": "2026-03-02T12:10:41.890Z",
+        "updated_at": "2026-03-02T12:10:41.890Z"
+    }
+},
+{
+    "model": "catalog.product",
+    "pk": 4,
+    "fields": {
+        "name": "Хлеб",
+        "description": "Белый хлеб",
+        "image": "",
+        "category": 3,
+        "price": "65.00",
+        "created_at": "2026-03-02T12:10:41.890Z",
+        "updated_at": "2026-03-02T12:10:41.893Z"
+    }
+}
+]
