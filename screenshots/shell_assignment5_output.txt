@@ -1,0 +1,41 @@
+=== Django shell (задание 5) ===
+
+--- Создание категорий (create()) ---
+Category.objects.create(name='Электроника', description='...')  -> Электроника
+Category.objects.create(name='Одежда', description='...')  -> Одежда
+Category.objects.create(name='Продукты', description='...')  -> Продукты
+
+--- Создание продуктов (create()) ---
+Product.objects.create(name='Смартфон', category=c1, price=29999.99)  -> Смартфон
+Product.objects.create(name='Ноутбук', category=c1, price=89999)  -> Ноутбук
+Product.objects.create(name='Футболка', category=c2, price=1499.50)  -> Футболка
+Product.objects.create(name='Хлеб', category=c3, price=59)  -> Хлеб
+
+--- Запрос: все категории (Category.objects.all()) ---
+  Электроника
+  Одежда
+  Продукты
+QuerySet: [<Category: Электроника>, <Category: Одежда>, <Category: Продукты>]
+
+--- Запрос: все продукты (Product.objects.all()) ---
+  Смартфон | категория: Электроника | цена: 29999.99
+  Ноутбук | категория: Электроника | цена: 89999.00
+  Футболка | категория: Одежда | цена: 1499.50
+  Хлеб | категория: Продукты | цена: 59.00
+
+--- Запрос: продукты категории 'Электроника' (Product.objects.filter(category=c1)) ---
+  Смартфон
+  Ноутбук
+QuerySet: [<Product: Смартфон>, <Product: Ноутбук>]
+
+--- Обновление цены продукта (например, Хлеб 59 -> 65) ---
+До: price=59.00
+p4.price = 65.00; p4.save()
+После: price=65.00
+
+--- Удаление продукта (например, Футболка) ---
+Удаляем: Футболка
+p3.delete()
+Product.objects.filter(name='Футболка').exists() = False
+
+=== Конец выполнения задания 5 ===
