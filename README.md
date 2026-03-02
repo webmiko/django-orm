@@ -27,25 +27,15 @@ brew services start postgresql@18
 export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
 ```
 
-После установки в системе будет пользователь с вашим именем ОС (без пароля по умолчанию). Для создания БД и отдельного пользователя используйте суперпользователя: на macOS часто это ваш же логин, подключение: `psql -d postgres` или `psql postgres`.
+После установки в системе будет пользователь с вашим именем ОС (без пароля по умолчанию). Для создания БД и отдельного пользователя подключитесь суперпользователем: на macOS часто это ваш же логин, например `psql -d postgres` или `psql postgres`.
 
 ### 2. Создание базы и пользователя
-
-Из корня проекта выполните (под пользователем с правами создания БД, например текущий пользователь или `postgres`):
-
-```bash
-psql -d postgres -f scripts/init_postgres.sql
-```
-
-Скрипт создаёт пользователя `django_orm_user`, пароль `django_orm_password`, базу `django_orm`. При необходимости отредактируйте `scripts/init_postgres.sql` и повторите пароль в `.env`.
-
-Если `psql` просит пароль и вы под своим пользователем macOS — можно создать БД вручную:
 
 ```bash
 psql -d postgres
 ```
 
-В psql:
+В psql выполните (при необходимости смените пароль и повторите его в `.env`):
 
 ```sql
 CREATE USER django_orm_user WITH PASSWORD 'django_orm_password';
@@ -72,10 +62,10 @@ poetry run python manage.py migrate
 ## Локальный сервер (HTML)
 
 ```bash
-poetry run python manage.py runserver
+poetry run python manage.py runserver 8080
 ```
 
-Откройте в браузере: http://127.0.0.1:8000/
+Откройте в браузере: http://127.0.0.1:8080/ (админка: http://127.0.0.1:8080/admin/)
 
 ## Форматтеры и линтеры
 
