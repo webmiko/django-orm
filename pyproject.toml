@@ -1,0 +1,80 @@
+[tool.poetry]
+name = "django-orm"
+version = "0.1.0"
+description = "Django project with PostgreSQL, Poetry, linting and testing"
+authors = ["webmiko <webmiko@icloud.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.0"
+psycopg2-binary = "^2.9"
+python-dotenv = "^1.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8"
+black = "^24.0"
+isort = "^5.13"
+pytest = "^8.0"
+pytest-django = "^4.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ——— Ruff: линтер и форматтер ———
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = [".git", "__pycache__", ".venv", "migrations", "Django-project-store-develop", "web_app", "Универсальная-база-знаний"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+]
+ignore = ["E501"]  # line length — проверяет black/ruff format
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "catalog"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ——— Black: форматирование (альтернатива ruff format) ———
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | __pycache__
+  | \.venv
+  | migrations
+)/
+'''
+
+# ——— isort: сортировка импортов ———
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["config", "catalog"]
+skip = [".venv", "migrations"]
+
+# ——— Pytest ———
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_test.py"]
+addopts = "-v --tb=short"
+filterwarnings = ["ignore::DeprecationWarning"]
+# Только тесты проекта (исключаем справочные папки)
+testpaths = ["catalog", "config"]
