@@ -1,0 +1,265 @@
+/**
+ * Стили админки в едином цветовом стиле сайта с поддержкой темы день/ночь.
+ * Те же переменные, что и в catalog/css/custom.css (админка не подключает custom.css).
+ */
+:root {
+    --theme-bg-page: #f8f9fa;
+    --theme-bg-main: #ffffff;
+    --theme-sidebar: #212529;
+    --theme-sidebar-text: rgba(255, 255, 255, 0.85);
+    --theme-sidebar-text-hover: #ffffff;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-active: rgba(50, 108, 243, 0.97);
+    --theme-text: #212529;
+    --theme-text-muted: #5a6268; /* контраст ≥4.5:1 на фоне страницы (WCAG AA) */
+    --theme-card-bg: #ffffff;
+    --theme-card-muted: #e9ecef;
+    --theme-border: rgba(0, 0, 0, 0.1);
+    --theme-btn-primary: rgba(50, 108, 243, 0.97);
+}
+[data-theme="dark"] {
+    --theme-bg-page: #1a1d21;
+    --theme-bg-main: #212529;
+    --theme-sidebar: #16181c;
+    --theme-sidebar-text: rgba(255, 255, 255, 0.85);
+    --theme-sidebar-text-hover: #ffffff;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-active: rgba(70, 130, 255, 0.9);
+    --theme-text: #e9ecef;
+    --theme-text-muted: #adb5bd;
+    --theme-card-bg: #2d3238;
+    --theme-card-muted: #343a40;
+    --theme-border: rgba(255, 255, 255, 0.1);
+    --theme-btn-primary: rgba(70, 130, 255, 0.9);
+}
+
+/* Фон и текст страницы */
+body {
+    background-color: var(--theme-bg-page) !important;
+    color: var(--theme-text) !important;
+}
+
+#container {
+    background-color: var(--theme-bg-page);
+}
+
+/* Шапка админки */
+#header {
+    background: var(--theme-sidebar) !important;
+    color: var(--theme-sidebar-text) !important;
+}
+
+#branding h1,
+#branding h1 a:link,
+#branding h1 a:visited,
+#site-name a {
+    color: var(--theme-sidebar-text-hover) !important;
+}
+
+#user-tools {
+    color: var(--theme-sidebar-text);
+}
+
+#user-tools a:link,
+#user-tools a:visited {
+    color: var(--theme-sidebar-text) !important;
+}
+
+#user-tools a:hover {
+    color: var(--theme-sidebar-text-hover) !important;
+}
+
+/* Основная область контента */
+.main,
+#content,
+#content-main {
+    background-color: var(--theme-bg-main) !important;
+    color: var(--theme-text) !important;
+}
+
+.content {
+    background-color: var(--theme-bg-main);
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+    background-color: var(--theme-bg-main) !important;
+    color: var(--theme-text-muted) !important;
+}
+
+.breadcrumbs a {
+    color: var(--theme-btn-primary) !important;
+}
+
+/* Заголовки контента */
+#content h1,
+#content h2 {
+    color: var(--theme-text) !important;
+}
+
+/* Модули и блоки */
+.module {
+    background-color: var(--theme-card-bg) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+.module h2,
+.module caption {
+    background-color: var(--theme-card-muted) !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border);
+}
+
+.module table {
+    color: var(--theme-text);
+}
+
+.module th {
+    color: var(--theme-text-muted);
+}
+
+/* Формы */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+    background-color: var(--theme-bg-main) !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border) !important;
+}
+
+/* Кнопки */
+.button,
+input[type="submit"],
+input[type="button"],
+button[type="submit"],
+.submit-row input {
+    background-color: var(--theme-btn-primary) !important;
+    color: #fff !important;
+    border: none;
+}
+
+.button:hover,
+input[type="submit"]:hover,
+button[type="submit"]:hover {
+    opacity: 0.9;
+}
+
+/* Сообщения */
+.messagelist li {
+    background-color: var(--theme-card-muted) !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border);
+}
+
+.messagelist li.success {
+    background-color: rgba(25, 135, 84, 0.15) !important;
+}
+
+.messagelist li.warning {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+}
+
+.messagelist li.error {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+/* Таблицы списков: обычное состояние — фон и текст из темы (светлый фон в день, тёмный в ночь) */
+#result_list,
+#result_list table,
+#result_list tbody,
+#result_list thead,
+.change-list .results {
+    background-color: var(--theme-bg-main) !important;
+    color: var(--theme-text) !important;
+}
+
+#result_list th,
+#result_list thead th {
+    background-color: var(--theme-card-muted) !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border);
+}
+
+#result_list td,
+#result_list tbody td,
+#result_list tbody tr td {
+    background-color: var(--theme-bg-main) !important;
+    color: var(--theme-text) !important;
+    border-color: var(--theme-border);
+}
+
+/* При наведении: контрастная подсветка (светлый фон и тёмный текст в день, светлее в ночь) */
+#result_list tbody tr:hover td {
+    background-color: var(--theme-card-muted) !important;
+    color: var(--theme-text) !important;
+}
+
+/* Сайдбар навигации (если включён) */
+#nav-sidebar {
+    background-color: var(--theme-sidebar) !important;
+    color: var(--theme-sidebar-text);
+}
+
+#nav-sidebar .module {
+    background: transparent !important;
+    border: none !important;
+}
+
+#nav-sidebar a {
+    color: var(--theme-sidebar-text);
+}
+
+#nav-sidebar a:hover {
+    background: var(--theme-sidebar-hover);
+    color: var(--theme-sidebar-text-hover);
+}
+
+#nav-sidebar .current-app .section {
+    color: var(--theme-sidebar-active);
+}
+
+/* Футер */
+#footer {
+    background-color: var(--theme-bg-main);
+    color: var(--theme-text-muted);
+    border-color: var(--theme-border);
+}
+
+/* Переключатель темы в админке */
+.admin-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.5rem;
+    margin-left: 0.5rem;
+    background: var(--theme-sidebar-hover);
+    border: 1px solid var(--theme-border);
+    border-radius: 6px;
+    color: var(--theme-sidebar-text);
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.admin-theme-toggle:hover {
+    background: var(--theme-sidebar-active);
+    color: var(--theme-sidebar-text-hover);
+}
+
+.admin-theme-label {
+    font-size: 0.8rem;
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* Skip link */
+.skip-to-content-link {
+    background: var(--theme-btn-primary);
+    color: #fff;
+}

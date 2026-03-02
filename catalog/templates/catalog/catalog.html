@@ -1,0 +1,97 @@
+{% extends "catalog/base.html" %}
+{% load static %}
+
+{% block title %}Каталог — Мой сайт{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5 fw-bold mb-3">Каталог</h1>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Фильтры</h5>
+                        <form method="get" action="{% url 'catalog:catalog' %}" id="catalogFiltersForm">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="categoryFilter" class="form-label">Категория</label>
+                                    <select class="form-select" id="categoryFilter" name="category">
+                                        <option value="">Все категории</option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.pk }}" {% if request.GET.category == cat.pk|stringformat:"d" %}selected{% endif %}>{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="priceFilter" class="form-label">Цена</label>
+                                    <select class="form-select" id="priceFilter" name="price">
+                                        <option value="">Любая цена</option>
+                                        <option value="low" {% if request.GET.price == "low" %}selected{% endif %}>До 1000 ₽</option>
+                                        <option value="medium" {% if request.GET.price == "medium" %}selected{% endif %}>1000 — 5000 ₽</option>
+                                        <option value="high" {% if request.GET.price == "high" %}selected{% endif %}>От 5000 ₽</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="sortFilter" class="form-label">Сортировка</label>
+                                    <select class="form-select" id="sortFilter" name="sort">
+                                        <option value="name" {% if request.GET.sort == "name" or not request.GET.sort %}selected{% endif %}>По названию</option>
+                                        <option value="price-asc" {% if request.GET.sort == "price-asc" %}selected{% endif %}>По цене: сначала дешёвые</option>
+                                        <option value="price-desc" {% if request.GET.sort == "price-desc" %}selected{% endif %}>По цене: сначала дорогие</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+                                </div>
+                            </div>
+                        </form>
+                        <script>
+                        document.getElementById('catalogFiltersForm').querySelectorAll('select').forEach(function(el) {
+                            el.addEventListener('change', function() { this.closest('form').submit(); });
+                        });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div>
+                <div class="card h-100 shadow-sm product-card">
+                    <div class="card-img-wrapper">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% else %}
+                        <img src="{% static 'catalog/foto/not-image.png' %}" class="card-img-top" alt="{{ product.name }}">
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted flex-grow-1">{{ product.description|default:""|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div class="d-flex" style="gap: 0.25rem;">
+                                <a href="{% url 'catalog:product_detail' product.pk %}" class="btn btn-primary btn-sm">Подробнее</a>
+                                <a href="#" class="btn btn-outline-primary btn-sm">Купить</a>
+                            </div>
+                            <small class="text-muted">{{ product.price }} ₽</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">
+                <p class="lead">В каталоге пока нет товаров. Добавьте их в <a href="{% url 'admin:index' %}">админке</a>.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
