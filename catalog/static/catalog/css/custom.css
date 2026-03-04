@@ -1,0 +1,1378 @@
+/* Custom CSS styles */
+
+/* ============================================================================
+   CSS Variables для единого дизайна
+   ============================================================================
+   
+   ИЗМЕНЯЙТЕ ЗДЕСЬ ДЛЯ ГЛОБАЛЬНОГО ОБНОВЛЕНИЯ ВСЕХ СТРАНИЦ!
+   
+   Все размеры заголовков и текста на всех страницах (index, catalog, category, contacts)
+   управляются через эти переменные. Изменив значение переменной, вы автоматически
+   обновите все соответствующие элементы на всех страницах.
+   
+   Примеры использования:
+   - Чтобы увеличить все главные заголовки: измените --font-size-h1
+   - Чтобы изменить размер текста везде: измените --font-size-text
+   - Чтобы изменить размер заголовков карточек: измените --font-size-h4 или --font-size-h5
+   
+   АДАПТИВНОСТЬ:
+   Все размеры автоматически адаптируются к размеру экрана:
+   - Очень маленькие экраны (до 480px): уменьшение до 60-90% от базового размера
+   - Мобильные устройства (до 768px): уменьшение до 75-95% от базового размера
+   - Планшеты (769px - 991px): уменьшение до 90-95% от базового размера
+   - Десктопы (992px - 1399px): базовые размеры из переменных
+   - Большие экраны (от 1400px): увеличение до 105-110% от базового размера
+   
+   ============================================================================ */
+/* Контрастность: основной и приглушённый текст подобраны под WCAG 2.1 AA (≥4.5:1 для обычного текста). */
+:root {
+    /* Тема: день (светлая) по умолчанию */
+    --theme-bg-page: #f8f9fa;
+    --theme-bg-main: #ffffff;
+    --theme-sidebar: #212529;
+    --theme-sidebar-text: rgba(255, 255, 255, 0.85);
+    --theme-sidebar-text-hover: #ffffff;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-active: rgba(50, 108, 243, 0.97);
+    --theme-text: #212529;
+    --theme-text-muted: #5a6268; /* контраст ≥4.5:1 на фоне #f8f9fa (WCAG AA) */
+    --theme-card-bg: #ffffff;
+    --theme-card-muted: #e9ecef;
+    --theme-border: rgba(0, 0, 0, 0.1);
+    --theme-btn-primary: rgba(50, 108, 243, 0.97);
+    --theme-shadow: rgba(0, 0, 0, 0.1);
+
+    /* Типографика - единые размеры для всех страниц */
+    --font-size-h1: 2.5rem;           /* Главные заголовки (h1) */
+    --font-size-h2: 1.75rem;           /* Подзаголовки (h2) */
+    --font-size-h3: 1.5rem;            /* Заголовки третьего уровня (h3) */
+    --font-size-h4: 1.25rem;           /* Заголовки карточек (h4, h5) */
+    --font-size-h5: 1.25rem;           /* Заголовки карточек (h5) */
+    --font-size-text: 1rem;            /* Обычный текст (p, .card-text) */
+    --font-size-small: 0.875rem;       /* Мелкий текст (small) */
+    --font-size-price: 1.875rem;       /* Цена на карточках (30px = 1.875rem) */
+    --font-size-icon: 1.375rem;        /* Иконки функций (22px = 1.375rem) */
+    
+    /* Веса шрифтов */
+    --font-weight-h1: 700;            /* Жирный для h1 */
+    --font-weight-h2: 600;             /* Полужирный для h2 */
+    --font-weight-h3: 600;             /* Полужирный для h3 */
+    --font-weight-card-title: 500;     /* Средний для заголовков карточек */
+    --font-weight-text: 400;           /* Обычный для текста */
+    
+    /* Высота строки */
+    --line-height-text: 1.5;           /* Высота строки для текста */
+    --line-height-heading: 1.2;        /* Высота строки для заголовков */
+    
+    /* Отступы для единого дизайна */
+    --section-padding-top: 3rem;       /* Единый отступ сверху для всех секций с h1 (48px) */
+    --h1-margin-top: 0;                /* Отступ сверху для h1 внутри секции */
+}
+
+/* Тема: ночь (тёмная). Контраст пар текст/фон проверен (≥5.5:1). */
+[data-theme="dark"] {
+    --theme-bg-page: #1a1d21;
+    --theme-bg-main: #212529;
+    --theme-sidebar: #16181c;
+    --theme-sidebar-text: rgba(255, 255, 255, 0.85);
+    --theme-sidebar-text-hover: #ffffff;
+    --theme-sidebar-hover: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-active: rgba(70, 130, 255, 0.9);
+    --theme-text: #e9ecef;
+    --theme-text-muted: #adb5bd;
+    --theme-card-bg: #2d3238;
+    --theme-card-muted: #343a40;
+    --theme-border: rgba(255, 255, 255, 0.1);
+    --theme-btn-primary: rgba(70, 130, 255, 0.9);
+    --theme-shadow: rgba(0, 0, 0, 0.3);
+    --contact-border-color: #495057;
+    --contact-bg-color: #2d3238;
+    --contact-email-bg: #343a40;
+    --contact-text-color: #e9ecef;
+}
+
+/* HTML: на всю ширину экрана */
+html {
+    width: 100%;
+    min-width: 100%;
+    overflow-x: clip;
+    max-width: 100vw;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Body */
+body {
+    width: 100%;
+    min-width: 100%;
+    height: fit-content;
+    overflow-x: clip;
+    max-width: 100vw;
+    background-color: var(--theme-bg-page);
+    color: var(--theme-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Footer */
+footer.py-3 {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Глобальные цвета текста по теме */
+.text-muted {
+    color: var(--theme-text-muted) !important;
+}
+
+/* Layout Wrapper: строго на всю ширину viewport, без пустого места справа */
+.layout-wrapper {
+    display: flex;
+    width: 100vw;
+    min-width: 100vw;
+    min-height: 100vh;
+    height: fit-content;
+    max-width: 100vw;
+    overflow-x: clip;
+    box-sizing: border-box;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 8%;
+    min-width: 240px;
+    height: 100vh;
+    background-color: var(--theme-sidebar);
+    z-index: 1000;
+    overflow-y: auto;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-content {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+}
+
+.sidebar-nav .navbar-brand,
+.sidebar-nav .nav-link.active,
+.mobile-menu-toggle {
+    color: var(--theme-sidebar-text-hover);
+}
+
+.sidebar-nav .navbar-brand {
+    font-size: 1.5rem;
+    text-decoration: none;
+    margin-bottom: 24px;
+    padding-top: 35px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    vertical-align: middle;
+    text-align: left;
+    gap: 0;
+}
+
+.bootstrap-logo-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.bootstrap-logo-img {
+    height: 2rem;
+    width: auto;
+    display: block;
+}
+
+.sidebar-nav .navbar-nav {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 0.5rem;
+}
+
+.theme-toggle-btn {
+    cursor: pointer;
+    color: var(--theme-sidebar-text);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    color: var(--theme-sidebar-text-hover);
+    background-color: var(--theme-sidebar-hover);
+}
+
+.theme-toggle-btn i {
+    margin-right: 0.5rem;
+}
+
+.sidebar-nav .nav-link {
+    color: var(--theme-sidebar-text);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: var(--theme-sidebar-text-hover);
+    background-color: var(--theme-sidebar-hover);
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: var(--theme-sidebar-active);
+    font-weight: 600;
+}
+
+/* Nested menu items - для показа вложенности (категория как дочерний элемент каталога) */
+.sidebar-nav .nav-item.nav-item-sub .nav-link {
+    padding-left: 2.5rem;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* User Menu Section */
+.user-menu-section {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.user-menu-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
+}
+
+.user-menu-wrapper {
+    position: relative;
+}
+
+.user-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    width: 100%;
+}
+
+.user-menu-toggle:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.user-avatar i {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.user-name {
+    flex: 1;
+    font-size: 12px;
+    width: 90px;
+    white-space: nowrap;
+    overflow: clip;
+    text-overflow: ellipsis;
+}
+
+.user-menu-arrow {
+    font-size: 0.875rem;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.user-menu-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--theme-card-muted);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+    overflow: clip;
+}
+
+.user-menu-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--theme-sidebar-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-menu-item:last-child,
+.user-menu-logout-form .user-menu-item-btn {
+    border-bottom: none;
+}
+
+.user-menu-logout-form {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.user-menu-item-btn {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: inherit;
+}
+
+.user-menu-item:hover {
+    color: var(--theme-sidebar-text-hover);
+    background-color: var(--theme-sidebar-hover);
+}
+
+.user-menu-item i {
+    font-size: 1rem;
+    width: 16px;
+    text-align: center;
+}
+
+.user-menu-item span {
+    font-size: 0.9rem;
+}
+
+/* Main Content: на всю оставшуюся ширину после сайдбара */
+.main-content {
+    margin-left: max(8%, 240px);
+    width: calc(100vw - max(8%, 240px));
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    min-height: 100vh;
+    padding: 0;
+    justify-content: flex-start;
+    align-items: stretch;
+    box-sizing: border-box;
+    background-color: var(--theme-bg-main);
+    transition: background-color 0.3s ease;
+}
+
+.main-content footer {
+    margin-top: auto;
+    width: 100%;
+    background: unset;
+    background-color: unset;
+}
+
+/* Hero Section */
+.hero-section {
+    background: none;
+    height: auto;
+    display: flex;
+    align-items: center;
+    left: unset;
+    top: unset;
+    width: 100%;
+    padding-top: var(--section-padding-top); /* Единый отступ сверху */
+    padding-bottom: var(--section-padding-top);
+}
+
+/* Hero Section Heading and Paragraph */
+.hero-section h1.display-4,
+.hero-section p.lead {
+    text-align: center;
+    color: var(--bs-body-color);
+}
+
+/* Hero Section Container */
+.hero-section .container {
+    width: 100%;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+/* Hero Section Row */
+.hero-section .row {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: -10px;
+    margin-right: -10px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    flex-direction: column;
+    box-sizing: content-box;
+    vertical-align: middle;
+}
+
+/* Hero Section Column */
+.hero-section .col-lg-6 {
+    width: 100%;
+}
+
+/* Features Section */
+.features-section {
+    width: 100%;
+    height: fit-content;
+    padding-top: var(--section-padding-top) !important; /* Единый отступ сверху для всех секций */
+    padding-bottom: var(--section-padding-top) !important;
+}
+
+/* Common padding for sections */
+.hero-section,
+.hero-section .container,
+.features-section {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Features Section Container */
+.features-section .container {
+    min-height: 350px;
+    height: fit-content;
+}
+
+/* Features Section Row - автоматическое изменение количества карточек с минимумом 220px */
+.features-section .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    min-height: 350px;
+    height: fit-content;
+    vertical-align: middle;
+    padding-top: 0; /* Убираем дополнительный отступ, так как секция уже имеет единый отступ */
+    padding-bottom: 0;
+    transition: all 0.3s ease;
+}
+
+/* Features Section Cards */
+.features-section .col-md-4 {
+    min-width: 220px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Адаптивные ограничения для разных размеров экрана */
+@media (max-width: 699px) {
+    .features-section .row {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (min-width: 700px) and (max-width: 991px) {
+    .features-section .row {
+        /* Ограничение максимум 2 колонки на средних экранах */
+        grid-template-columns: repeat(auto-fit, minmax(220px, min(1fr, calc((100% - 1 * 1rem) / 2))));
+    }
+}
+
+@media (min-width: 992px) {
+    .features-section .row {
+        /* Фиксируем ровно 3 колонки на больших экранах - карточки растут пропорционально */
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* На очень широких экранах увеличиваем gap пропорционально */
+@media (min-width: 1200px) {
+    .features-section .row {
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    .features-section .row {
+        gap: 2rem;
+    }
+}
+
+/* Features Section Cards - минимальная ширина 220px с автоматическим уменьшением колонок */
+.features-section .col-md-4 {
+    min-width: 220px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Feature Icons */
+.feature-icon,
+h2.feature-icon {
+    font-size: var(--font-size-icon); /* Использует единую переменную */
+    padding: 10px 0;
+}
+
+.feature-icon {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: var(--theme-card-muted);
+    margin: 0;
+    gap: 0;
+}
+
+/* Feature Icon h2 specific styles */
+h2.feature-icon {
+    border-radius: 10px 10px 0px 0px;
+}
+
+/* Home Page Product Cards */
+
+.home-product-card .card-body {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    text-align: center;
+}
+
+.home-card-title,
+.home-card-price,
+.home-product-card .card-text {
+    text-align: center;
+}
+
+.home-card-title {
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-card-title);
+    background-color: var(--theme-card-muted);
+    margin: 0;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+}
+
+.home-card-price {
+    font-size: var(--font-size-price); /* Использует единую переменную */
+    font-weight: var(--font-weight-text);
+    margin: 0;
+    padding: 1rem;
+    padding-top: 0.5rem;
+}
+
+.home-product-card .card-text {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+}
+
+.home-buy-btn {
+    width: calc(100% - 32px);
+    margin: 0 16px 16px 16px;
+    background: none !important;
+    background-color: transparent !important;
+    border: 2px solid var(--theme-btn-primary) !important;
+    border-radius: 5px;
+    color: var(--theme-btn-primary) !important;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.home-buy-btn:hover {
+    background-color: var(--theme-btn-primary);
+    color: #fff;
+}
+
+/* Product Cards */
+.home-product-card,
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-img-wrapper {
+    overflow: clip;
+    height: 250px;
+    background-color: var(--theme-card-muted);
+}
+
+.card-img-wrapper img,
+img.card-img-top {
+    width: 100%;
+    height: 100%;
+}
+
+.card-img-wrapper img {
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .card-img-wrapper img {
+    transform: scale(1.05);
+}
+
+/* Contact Icons */
+.contact-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+}
+
+/* Form Styling */
+.form-control:focus,
+.contact-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.contact-input:focus {
+    outline: none;
+}
+
+.btn-primary {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+button.btn {
+    background-color: var(--bs-blue);
+    border-color: var(--bs-blue);
+}
+
+.btn-primary:hover {
+    background-color: #5568d3;
+    border-color: #5568d3;
+}
+
+/* Navbar Active Link */
+.navbar-nav .nav-link.active {
+    color: #fff !important;
+    font-weight: 600;
+}
+
+/* Card Styling */
+.card {
+    border: none;
+    border-radius: 10px;
+    background-color: var(--theme-card-bg);
+    color: var(--theme-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card-body,
+div.card-body {
+    padding: 0 !important;
+    margin: 0 16px 16px 16px;
+    border-radius: 10px;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0;
+    column-gap: 0;
+}
+
+.card-content-group .card-title,
+.card-content-group .card-text {
+    margin: 0;
+}
+
+.card-content-group .card-title {
+    padding-left: 0;
+    padding-right: 0;
+    font-size: var(--font-size-price); /* Использует единую переменную для цены/больших заголовков */
+    font-weight: var(--font-weight-h1);
+}
+
+/* Card Content Group */
+.card-content-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 0 16px;
+    padding-left: 0;
+    padding-right: 0;
+    box-sizing: border-box;
+}
+
+/* Product Card Bottom Section - applies to all product cards */
+.product-card .card-body > .d-flex.justify-content-between.align-items-center.mt-auto {
+    margin-top: auto;
+    padding-top: 1rem;
+    width: 100%;
+}
+
+/* Gap override for d-flex in product cards */
+.product-card .card-body .d-flex {
+    gap: 0px;
+}
+
+/* Buy Button in Product Card */
+.product-card .card-body .btn-primary {
+    margin: 0;
+    background: unset;
+    background-color: unset;
+    border-color: var(--bs-btn-bg);
+    border-image: none;
+    overflow: clip;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 12px;
+    box-sizing: border-box;
+    color: var(--bs-btn-bg);
+    border-radius: 10px;
+}
+
+/* Anchor Button Styles */
+a.btn,
+a.btn-primary,
+.product-card .card-body a.btn-primary {
+    color: var(--bs-dark-border-subtle);
+    border-color: var(--bs-dark-border-subtle);
+}
+
+/* First button (View) - rounded on left side only - applies to all product cards */
+.product-card .card-body .d-flex > .btn-primary:first-child {
+    border-radius: 10px 0px 0px 10px;
+}
+
+/* Second button (Edit) - no rounding on left side - applies to all product cards */
+.product-card .card-body .d-flex > .btn-primary:last-child {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.card-content-group .btn-primary {
+    width: 100%;
+    margin: 0 0 16px 0;
+    padding: 0 16px;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Products Grid: карточки не выходят за экран, не обрезаются; брейкпоинты с учётом сайдбара */
+.products-grid {
+    --products-gap: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+    gap: var(--products-gap);
+    padding: 0 20px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: fit-content;
+    box-sizing: border-box;
+    transition: gap 0.2s ease, padding 0.2s ease;
+}
+
+/* Одна карточка в ряд: центрирование по экрану (контейнер < 665px) */
+@media (max-width: 911px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        --products-gap: 20px;
+        padding: 0 16px;
+    }
+    .products-grid > div {
+        width: 100%;
+        max-width: min(420px, 100%);
+    }
+    .products-grid .product-card {
+        min-width: 0;
+    }
+}
+
+/* Две карточки: контент-зона не менее ~665px (viewport с сайдбаром 912px+) */
+@media (min-width: 912px) and (max-width: 1279px) {
+    .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        --products-gap: 24px;
+        padding: 0 24px;
+    }
+    .products-grid .product-card {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+/* Три карточки в ряд: широкая контент-зона (viewport ~1280px+) */
+@media (min-width: 1280px) {
+    .products-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        --products-gap: 30px;
+        padding: 0 30px;
+    }
+    .products-grid .product-card {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 1400px) {
+    .products-grid {
+        --products-gap: 40px;
+        padding: 0 40px;
+    }
+}
+
+/* Обёртка и карточка: по высоте контента, не вылезают по ширине */
+div.col-md-4,
+.products-grid > div,
+.feature-icon {
+    height: fit-content;
+}
+
+.products-grid > div {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.products-grid .product-card {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Section py-5: на всю ширину main, контент не обрезается */
+section.py-5 {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
+    padding-top: var(--section-padding-top) !important;
+    padding-bottom: var(--section-padding-top) !important;
+    box-sizing: border-box;
+}
+
+/* Контейнер: по центру main-content, не шире области */
+section.py-5 .container {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* Единые селекторы для типографики - изменяйте переменные в :root для глобального обновления */
+
+/* Главные заголовки (h1) - единый стиль на всех страницах */
+h1,
+h1.display-4,
+h1.display-5,
+section.py-5 .container h1,
+section.py-5 .container h1.mb-4,
+section.py-5 .container h1.mb-3,
+section.py-5 .row.mb-4 .col-12 h1,
+.features-section h1,
+.features-section h1.display-4,
+.features-section .container h1,
+.hero-section h1,
+.hero-section h1.display-4 {
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-h1);
+    line-height: var(--line-height-heading);
+    margin-top: var(--h1-margin-top) !important; /* Единый отступ сверху для всех h1 */
+}
+
+/* Подзаголовки (h2) - единый стиль на всех страницах */
+h2,
+.contact-info-column h2,
+h2.home-card-title {
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-h2);
+    line-height: var(--line-height-heading);
+}
+
+/* Заголовки третьего уровня (h3) - единый стиль на всех страницах */
+h3 {
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-h3);
+    line-height: var(--line-height-heading);
+}
+
+/* Заголовки карточек (h4, h5) - единый стиль на всех страницах */
+h4,
+h5,
+h5.card-title,
+.product-card .card-title,
+.product-card h5.card-title {
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-card-title);
+    line-height: var(--line-height-heading);
+}
+
+/* Заголовки карточек с классом home-card-title - переопределение размера */
+h2.home-card-title {
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-card-title);
+}
+
+/* Обычный текст - единый стиль на всех страницах */
+p,
+.card-text,
+.contact-info-text p,
+.lead {
+    font-size: var(--font-size-text);
+    font-weight: var(--font-weight-text);
+    line-height: var(--line-height-text);
+}
+
+/* Мелкий текст - единый стиль на всех страницах */
+small,
+.text-muted {
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-text);
+    line-height: var(--line-height-text);
+}
+
+/* Common text alignment and vertical alignment */
+.hero-section,
+.feature-icon,
+section.py-5 .row.mb-4 .col-12,
+section.py-5 .container .row.mb-4 .col-12 {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Override text-align for card-title in filters section */
+h5.card-title {
+    text-align: left;
+    font-size: var(--font-size-h5); /* Использует единую переменную */
+    font-weight: var(--font-weight-card-title);
+}
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle,
+#mobileMenuToggle {
+    height: fit-content;
+}
+
+.mobile-menu-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background-color: #212529;
+    border: none;
+    border-radius: 5px;
+    width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background-color: #343a40;
+}
+
+.mobile-menu-toggle:focus {
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Row with gutter spacing in card body */
+.card-body .row.g-3 {
+    padding: 25px 0 38px;
+}
+
+/* Contacts Page Styles */
+/* CSS Variables for Contacts - изменяйте здесь для глобального обновления */
+:root {
+    --contact-border-radius: 5px;
+    --contact-input-padding: 0.75rem;
+    --contact-form-padding: 1.5rem;
+    --contact-form-gap: 1.5rem;
+    --contact-container-gap: 71px;
+    --contact-container-padding: 30px;
+    --contact-border-color: #ced4da;
+    --contact-bg-color: #fff;
+    --contact-email-bg: #e9ecef;
+    --contact-text-color: #495057;
+    --contact-info-gap: 1rem;
+    --contact-info-h2-margin: 1.5rem;
+}
+
+/* Contacts Section Title - убираем дополнительный padding, используем единые отступы */
+section.py-5 .container h1.mb-4 {
+    text-align: center;
+    padding: 0; /* Убираем дополнительный padding, используем единые отступы секции */
+}
+
+/* Contacts Flex Container */
+.contacts-flex-container {
+    display: flex;
+    gap: var(--contact-container-gap);
+    align-items: center;
+    height: fit-content;
+    flex-wrap: wrap;
+    vertical-align: middle;
+    padding-left: var(--contact-container-padding);
+    padding-right: var(--contact-container-padding);
+}
+
+/* Common styles for both contact columns - изменяйте здесь для обеих колонок */
+.contact-form-column,
+.contact-info-column {
+    flex: 1;
+}
+
+/* Contact Form Column specific styles */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--contact-form-gap);
+    background-color: var(--contact-bg-color);
+    border: 1px solid var(--contact-border-color);
+    border-radius: var(--contact-border-radius);
+    padding: var(--contact-form-padding);
+}
+
+.contact-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-form .form-label {
+    margin-bottom: 0.5rem;
+}
+
+/* Contact Input - общий стиль для всех полей ввода */
+.contact-input {
+    border-radius: var(--contact-border-radius);
+    padding: var(--contact-input-padding);
+    border: 1px solid var(--contact-border-color);
+}
+
+/* Contact Email Group */
+.contact-email-group {
+    display: flex;
+}
+
+.contact-email-symbol {
+    background-color: var(--contact-email-bg) !important;
+    border: 1px solid var(--contact-border-color);
+    border-right: none;
+    border-radius: var(--contact-border-radius) 0 0 var(--contact-border-radius);
+    padding: var(--contact-input-padding);
+    color: var(--contact-text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact-email-group .contact-input {
+    border-left: none;
+    border-radius: 0 var(--contact-border-radius) var(--contact-border-radius) 0;
+    flex: 1;
+}
+
+.contact-submit-btn {
+    align-self: flex-start;
+    border-radius: var(--contact-border-radius);
+}
+
+/* Contact Info Column specific styles */
+.contact-info-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: fit-content;
+    vertical-align: middle;
+}
+
+.contact-info-column h2 {
+    margin-bottom: var(--contact-info-h2-margin);
+}
+
+.contact-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--contact-info-gap);
+}
+
+.contact-info-text p {
+    margin: 0;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+#message {
+    height: 80px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar-nav {
+        width: 240px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .sidebar-nav.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .hero-section {
+        min-height: 300px;
+        text-align: center;
+    }
+    
+    /* Адаптивные отступы для секций на мобильных */
+    section.py-5,
+    .features-section,
+    .hero-section {
+        padding-top: calc(var(--section-padding-top) * 0.75) !important; /* 75% от основного отступа */
+        padding-bottom: calc(var(--section-padding-top) * 0.75) !important;
+    }
+    
+    /* Адаптивные размеры типографики для мобильных устройств (до 768px) */
+    
+    /* Главные заголовки (h1) - уменьшаем на мобильных */
+    h1,
+    h1.display-4,
+    h1.display-5,
+    section.py-5 .container h1,
+    section.py-5 .container h1.mb-4,
+    .features-section h1,
+    .features-section h1.display-4 {
+        font-size: calc(var(--font-size-h1) * 0.75); /* 75% от основного размера */
+    }
+    
+    /* Подзаголовки (h2) - уменьшаем на мобильных */
+    h2,
+    .contact-info-column h2,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h2) * 0.85); /* 85% от основного размера */
+    }
+    
+    /* Заголовки третьего уровня (h3) - уменьшаем на мобильных */
+    h3 {
+        font-size: calc(var(--font-size-h3) * 0.9); /* 90% от основного размера */
+    }
+    
+    /* Заголовки карточек (h4, h5) - немного уменьшаем на мобильных */
+    h4,
+    h5,
+    h5.card-title,
+    .product-card .card-title,
+    .product-card h5.card-title,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h4) * 0.95); /* 95% от основного размера */
+    }
+    
+    /* Обычный текст - немного уменьшаем на мобильных */
+    p,
+    .card-text,
+    .contact-info-text p,
+    .lead {
+        font-size: calc(var(--font-size-text) * 0.95); /* 95% от основного размера */
+    }
+    
+    /* Цены и специальные элементы - уменьшаем на мобильных */
+    .home-card-price,
+    .card-content-group .card-title {
+        font-size: calc(var(--font-size-price) * 0.85); /* 85% от основного размера */
+    }
+    
+    /* Иконки - уменьшаем на мобильных */
+    .feature-icon,
+    h2.feature-icon {
+        font-size: calc(var(--font-size-icon) * 0.9); /* 90% от основного размера */
+    }
+    
+}
+
+/* Адаптивные размеры типографики для очень маленьких экранов (до 480px) */
+@media (max-width: 480px) {
+    /* Адаптивные отступы для секций на очень маленьких экранах */
+    section.py-5,
+    .features-section,
+    .hero-section {
+        padding-top: calc(var(--section-padding-top) * 0.6) !important; /* 60% от основного отступа */
+        padding-bottom: calc(var(--section-padding-top) * 0.6) !important;
+    }
+    /* Главные заголовки (h1) - еще больше уменьшаем на очень маленьких экранах */
+    h1,
+    h1.display-4,
+    h1.display-5,
+    section.py-5 .container h1,
+    section.py-5 .container h1.mb-4,
+    .features-section h1,
+    .features-section h1.display-4 {
+        font-size: calc(var(--font-size-h1) * 0.6); /* 60% от основного размера */
+    }
+    
+    /* Подзаголовки (h2) - еще больше уменьшаем */
+    h2,
+    .contact-info-column h2,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h2) * 0.75); /* 75% от основного размера */
+    }
+    
+    /* Заголовки карточек - еще больше уменьшаем */
+    h4,
+    h5,
+    h5.card-title,
+    .product-card .card-title,
+    .product-card h5.card-title,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h4) * 0.9); /* 90% от основного размера */
+    }
+    
+    /* Цены - еще больше уменьшаем */
+    .home-card-price,
+    .card-content-group .card-title {
+        font-size: calc(var(--font-size-price) * 0.75); /* 75% от основного размера */
+    }
+}
+
+/* Адаптивные размеры типографики для планшетов (769px - 991px) */
+@media (min-width: 769px) and (max-width: 991px) {
+    /* Главные заголовки (h1) - немного уменьшаем на планшетах */
+    h1,
+    h1.display-4,
+    h1.display-5,
+    section.py-5 .container h1,
+    section.py-5 .container h1.mb-4,
+    .features-section h1,
+    .features-section h1.display-4 {
+        font-size: calc(var(--font-size-h1) * 0.9); /* 90% от основного размера */
+    }
+    
+    /* Подзаголовки (h2) - немного уменьшаем */
+    h2,
+    .contact-info-column h2,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h2) * 0.95); /* 95% от основного размера */
+    }
+}
+
+/* Адаптивные размеры типографики для больших экранов (от 1400px) */
+@media (min-width: 1400px) {
+    /* Можно немного увеличить размеры на очень больших экранах для лучшей читаемости */
+    h1,
+    h1.display-4,
+    h1.display-5,
+    section.py-5 .container h1,
+    section.py-5 .container h1.mb-4,
+    .features-section h1,
+    .features-section h1.display-4 {
+        font-size: calc(var(--font-size-h1) * 1.1); /* 110% от основного размера */
+    }
+    
+    h2,
+    .contact-info-column h2,
+    h2.home-card-title {
+        font-size: calc(var(--font-size-h2) * 1.05); /* 105% от основного размера */
+    }
+    
+    p,
+    .card-text,
+    .contact-info-text p,
+    .lead {
+        font-size: calc(var(--font-size-text) * 1.05); /* 105% от основного размера */
+    }
+}
+
+/* Contacts mobile layout for screens less than 780px */
+/* Изменяйте здесь для мобильной версии обеих колонок одновременно */
+@media (max-width: 780px) {
+    .contacts-flex-container {
+        flex-direction: column;
+        flex-wrap: wrap;
+    }
+    
+    /* Общие мобильные стили для обеих колонок контактов */
+    .contact-form-column,
+    .contact-info-column {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+}
