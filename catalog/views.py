@@ -1,13 +1,14 @@
 """Контроллеры приложения catalog.
 
-Главная страница с выводом последних продуктов в консоль, страница контактов.
+Главная страница с выводом последних продуктов в лог, каталог, категории, контакты.
+Все представления реализованы на основе классов (CBV).
 """
 
 import logging
 from pathlib import Path
 
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
+from django.views.generic import DetailView, ListView, View
 
 from .models import Category, Contact, Product
 
@@ -40,99 +41,121 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
-def product_detail(request: HttpRequest, pk: int) -> HttpResponse:
+class ProductDetailView(DetailView):
     """Страница одного товара: все данные продукта по pk."""
-    product = get_object_or_404(Product.objects.select_related("category"), pk=pk)
-    return render(request, "catalog/product_detail.html", {"product": product})
+
+    model = Product
+    template_name = "catalog/product_detail.html"
+    context_object_name = "product"
+
+    def get_queryset(self):
+        return Product.objects.select_related("category")
 
 
-def home(request: HttpRequest) -> HttpResponse:
-    """Главная страница. В консоль (лог) выводятся последние 5 созданных продуктов."""
-    latest = Product.objects.order_by("-created_at")[:LAST_PRODUCTS_LIMIT]
-    for product in latest:
-        logger.info(
-            "Последний продукт: id=%s, name=%s, price=%s, category=%s",
-            product.pk,
-            product.name,
-            product.price,
-            product.category.name,
+class HomeView(View):
+    """Главная страница. В лог выводятся последние N созданных продуктов."""
+
+    def get(self, request, *_args, **_kwargs):
+        latest = Product.objects.order_by("-created_at")[:LAST_PRODUCTS_LIMIT]
+        for product in latest:
+            logger.info(
+                "Последний продукт: id=%s, name=%s, price=%s, category=%s",
+                product.pk,
+                product.name,
+                product.price,
+                product.category.name,
+            )
+        return render(
+            request,
+            "catalog/home.html",
+            {"latest_products": latest},
         )
-    return render(
-        request,
-        "catalog/home.html",
-        {"latest_products": latest},
-    )
 
 
-def contacts(request: HttpRequest) -> HttpResponse:
+class ContactsView(View):
     """Страница контактов: форма обратной связи и список контактов из БД."""
-    if request.method == "POST":
+
+    def get(self, request, *_args, **_kwargs):
+        contact_list = Contact.objects.all()
+        return render(
+            request,
+            "catalog/contacts.html",
+            {"contact_list": contact_list},
+        )
+
+    def post(self, request, *_args, **_kwargs):
         name = request.POST.get("name", "").strip()
         email = request.POST.get("email", "").strip()
         message = request.POST.get("message", "").strip()
         if name and email and message:
             Contact.objects.create(name=name, email=email, message=message)
         return redirect("catalog:contacts")
-    contact_list = Contact.objects.all()
-    return render(
-        request,
-        "catalog/contacts.html",
-        {"contact_list": contact_list},
-    )
 
 
-def catalog_list(request: HttpRequest) -> HttpResponse:
+class CatalogListView(ListView):
     """Страница каталога: список товаров с фильтрами по категории, цене и сортировкой."""
-    categories = Category.objects.all()
-    products = Product.objects.select_related("category")
 
-    category_id = request.GET.get("category")
-    if category_id:
-        try:
-            products = products.filter(category_id=int(category_id))
-        except ValueError:
-            pass
+    model = Product
+    template_name = "catalog/catalog.html"
+    context_object_name = "products"
 
-    price = request.GET.get("price")
-    if price == "low":
-        products = products.filter(price__lt=1000)
-    elif price == "medium":
-        products = products.filter(price__gte=1000, price__lte=5000)
-    elif price == "high":
-        products = products.filter(price__gt=5000)
+    def get_queryset(self):
+        queryset = Product.objects.select_related("category")
 
-    sort = request.GET.get("sort", "name")
-    if sort == "price-asc":
-        products = products.order_by("price", "name")
-    elif sort == "price-desc":
-        products = products.order_by("-price", "name")
-    else:
-        products = products.order_by("name")
+        category_id_raw = self.request.GET.get("category")
+        if category_id_raw is not None:
+            try:
+                category_id = int(category_id_raw)
+            except ValueError:
+                category_id = None
+            if category_id is not None:
+                queryset = queryset.filter(category_id=category_id)
 
-    return render(
-        request,
-        "catalog/catalog.html",
-        {"products": products, "categories": categories},
-    )
+        price = self.request.GET.get("price")
+        if price == "low":
+            queryset = queryset.filter(price__lt=1000)
+        elif price == "medium":
+            queryset = queryset.filter(price__gte=1000, price__lte=5000)
+        elif price == "high":
+            queryset = queryset.filter(price__gt=5000)
+
+        sort = self.request.GET.get("sort", "name")
+        if sort == "price-asc":
+            queryset = queryset.order_by("price", "name")
+        elif sort == "price-desc":
+            queryset = queryset.order_by("-price", "name")
+        else:
+            queryset = queryset.order_by("name")
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categories"] = Category.objects.all()
+        return context
 
 
-def category_index(request: HttpRequest) -> HttpResponse:
+class CategoryIndexView(View):
     """Страница «Категория»: товары первой категории или пустой список."""
-    category = Category.objects.first()
-    products = category.products.all().order_by("name") if category else []
-    return render(
-        request,
-        "catalog/category.html",
-        {"category": category, "products": products},
-    )
+
+    def get(self, request, *_args, **_kwargs):
+        category = Category.objects.first()
+        products = category.products.all().order_by("name") if category else []
+        return render(
+            request,
+            "catalog/category.html",
+            {"category": category, "products": products},
+        )
 
 
-def category_detail(request: HttpRequest, pk: int) -> HttpResponse:
+class CategoryDetailView(DetailView):
     """Страница категории по pk: товары выбранной категории."""
-    category = get_object_or_404(Category, pk=pk)
-    products = category.products.all().order_by("name")
-    return render(
-        request,
-        "catalog/category.html",
-        {"category": category, "products": products},
-    )
+
+    model = Category
+    template_name = "catalog/category.html"
+    context_object_name = "category"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["products"] = self.object.products.all().order_by("name")
+        return context
