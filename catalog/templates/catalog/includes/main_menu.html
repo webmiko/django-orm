@@ -27,6 +27,9 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'contacts' %}active{% endif %}" href="{% url 'catalog:contacts' %}">Контакты</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.namespace == 'blog' %}active{% endif %}" href="{% url 'blog:post_list' %}">Блог</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="{% url 'admin:index' %}">Админка</a>
             </li>
         </ul>

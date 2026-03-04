@@ -46,7 +46,7 @@ select = [
 ignore = ["E501"]  # line length — проверяет black/ruff format
 
 [tool.ruff.lint.isort]
-known-first-party = ["config", "catalog"]
+known-first-party = ["config", "catalog", "blog"]
 
 [tool.ruff.format]
 quote-style = "double"

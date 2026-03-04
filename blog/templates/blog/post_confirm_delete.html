@@ -1,0 +1,19 @@
+{% extends "catalog/base.html" %}
+{% load static %}
+
+{% block title %}Удалить запись — Блог{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <h1 class="display-5 fw-bold mb-4">Удалить запись</h1>
+        <p class="lead">Вы уверены, что хотите удалить запись «{{ post.title }}»?</p>
+
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Удалить</button>
+        </form>
+        <a href="{% url 'blog:post_list' %}" class="btn btn-secondary">Отмена</a>
+    </div>
+</section>
+{% endblock %}
