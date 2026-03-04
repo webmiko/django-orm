@@ -1,0 +1,26 @@
+[
+  {
+    "model": "blog.blogpost",
+    "pk": 1,
+    "fields": {
+      "title": "Добро пожаловать в блог",
+      "content": "Первая запись. Здесь будут новости и статьи для улучшения SEO сайта.",
+      "preview": null,
+      "created_at": "2026-03-04T12:00:00Z",
+      "is_published": true,
+      "view_count": 0
+    }
+  },
+  {
+    "model": "blog.blogpost",
+    "pk": 2,
+    "fields": {
+      "title": "О проекте",
+      "content": "Краткое описание проекта и используемых технологий: Django, CBV, PostgreSQL.",
+      "preview": null,
+      "created_at": "2026-03-04T12:05:00Z",
+      "is_published": true,
+      "view_count": 0
+    }
+  }
+]
