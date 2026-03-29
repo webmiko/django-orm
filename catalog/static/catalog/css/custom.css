@@ -114,40 +114,12 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Footer: навигация на всех страницах, выравнивание с колонкой main */
-.site-footer {
-    margin-left: max(8%, 240px);
-    width: calc(100vw - max(8%, 240px));
-    max-width: 100%;
-    box-sizing: border-box;
-    background-color: var(--theme-bg-main);
-    color: var(--theme-text);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.site-footer.border-top {
-    border-color: var(--theme-border) !important;
-}
-
-.site-footer-nav {
-    font-size: 0.9375rem;
-}
-
-.site-footer-nav a {
-    color: var(--theme-btn-primary);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.site-footer-nav a:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-    .site-footer {
-        margin-left: 0;
-        width: 100%;
-    }
+/* Footer */
+footer.py-3 {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 /* Глобальные цвета текста по теме */
@@ -229,7 +201,6 @@ body {
     margin-top: 0;
     flex: 1;
     overflow-y: auto;
-    color: var(--theme-sidebar-text);
 }
 
 .sidebar-nav .nav-item {
@@ -381,7 +352,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    color: var(--contact-text-color);
+    color: var(--theme-sidebar-text);
     text-decoration: none;
     transition: all 0.3s ease;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -410,23 +381,14 @@ body {
 }
 
 .user-menu-item:hover {
-    color: var(--theme-text);
+    color: var(--theme-sidebar-text-hover);
     background-color: var(--theme-sidebar-hover);
 }
 
-.user-menu-item i.bi {
+.user-menu-item i {
     font-size: 1rem;
     width: 16px;
     text-align: center;
-    color: inherit;
-}
-
-.user-menu-item i.bi.bi-box-arrow-in-right {
-    color: var(--theme-btn-primary);
-}
-
-.user-menu-item:hover i.bi.bi-box-arrow-in-right {
-    color: var(--theme-btn-primary);
 }
 
 .user-menu-item span {
@@ -469,14 +431,13 @@ body {
     width: 100%;
     padding-top: var(--section-padding-top); /* Единый отступ сверху */
     padding-bottom: var(--section-padding-top);
-    color: var(--theme-text);
 }
 
 /* Hero Section Heading and Paragraph */
 .hero-section h1.display-4,
 .hero-section p.lead {
     text-align: center;
-    color: var(--theme-text);
+    color: var(--bs-body-color);
 }
 
 /* Hero Section Container */
@@ -711,11 +672,6 @@ img.card-img-top {
 }
 
 /* Form Styling */
-div.form-text,
-div.form-text ul {
-    color: var(--theme-text-muted);
-}
-
 .form-control:focus,
 .contact-input:focus {
     border-color: #667eea;

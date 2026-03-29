@@ -31,13 +31,6 @@
                     <dt class="col-sm-4">Дата изменения</dt>
                     <dd class="col-sm-8">{{ product.updated_at|date:"d.m.Y H:i" }}</dd>
                 </dl>
-                {% if user.is_authenticated %}
-                <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-outline-primary btn-sm">Редактировать</a>
-                    <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger btn-sm">Удалить</a>
-                    <a href="{% url 'catalog:product_manage' %}" class="btn btn-outline-secondary btn-sm">Все товары</a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>

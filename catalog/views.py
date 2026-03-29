@@ -2,25 +2,15 @@
 
 Главная страница с выводом последних продуктов в лог, каталог, категории, контакты.
 Все представления реализованы на основе классов (CBV).
-
-CRUD товаров: ModelForm и дженерики CreateView / UpdateView / DeleteView.
 """
 
 import logging
 from pathlib import Path
 
-from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, LogoutView
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, View
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from .forms import ContactForm, ProductForm, SiteLoginForm, SiteUserCreationForm
-from .models import Category, Product
+from .models import Category, Contact, Product
 
 ENCODING = "utf-8"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -51,38 +41,6 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
-class RegisterView(CreateView):
-    """Регистрация нового пользователя; после успеха — вход и редирект на главную."""
-
-    form_class = SiteUserCreationForm
-    template_name = "catalog/register.html"
-    success_url = reverse_lazy("catalog:home")
-
-    def form_valid(self, form):
-        self.object = form.save()
-        login(
-            self.request,
-            self.object,
-            backend="django.contrib.auth.backends.ModelBackend",
-        )
-        messages.success(self.request, "Регистрация прошла успешно. Добро пожаловать!")
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class SiteLoginView(LoginView):
-    """Вход на сайт (не админка)."""
-
-    form_class = SiteLoginForm
-    template_name = "catalog/login.html"
-    redirect_authenticated_user = True
-
-
-class SiteLogoutView(LogoutView):
-    """Выход (POST, как рекомендует Django)."""
-
-    next_page = reverse_lazy("catalog:home")
-
-
 class ProductDetailView(DetailView):
     """Страница одного товара: все данные продукта по pk."""
 
@@ -94,56 +52,11 @@ class ProductDetailView(DetailView):
         return Product.objects.select_related("category")
 
 
-# --- Управление товарами (CRUD) ---
-
-
-class ProductManageListView(LoginRequiredMixin, ListView):
-    """Список всех товаров со ссылками на просмотр, редактирование и удаление."""
-
-    model = Product
-    template_name = "catalog/product_manage_list.html"
-    context_object_name = "products"
-
-    def get_queryset(self):
-        return Product.objects.select_related("category").order_by("name")
-
-
-class ProductCreateView(LoginRequiredMixin, CreateView):
-    """Создание продукта через ProductForm."""
-
-    model = Product
-    form_class = ProductForm
-    template_name = "catalog/product_form.html"
-    success_url = reverse_lazy("catalog:product_manage")
-
-
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
-    """Редактирование продукта через ProductForm."""
-
-    model = Product
-    form_class = ProductForm
-    template_name = "catalog/product_form.html"
-    success_url = reverse_lazy("catalog:product_manage")
-
-
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
-    """Удаление продукта с подтверждением (шаблон product_confirm_delete.html)."""
-
-    model = Product
-    template_name = "catalog/product_confirm_delete.html"
-    success_url = reverse_lazy("catalog:product_manage")
-    context_object_name = "product"
-
-
 class HomeView(View):
     """Главная страница. В лог выводятся последние N созданных продуктов."""
 
     def get(self, request, *_args, **_kwargs):
-        latest = (
-            Product.objects.filter(is_published=True)
-            .select_related("category")
-            .order_by("-created_at")[:LAST_PRODUCTS_LIMIT]
-        )
+        latest = Product.objects.order_by("-created_at")[:LAST_PRODUCTS_LIMIT]
         for product in latest:
             logger.info(
                 "Последний продукт: id=%s, name=%s, price=%s, category=%s",
@@ -160,19 +73,23 @@ class HomeView(View):
 
 
 class ContactsView(View):
-    """Страница контактов: ModelForm обратной связи без публичного списка ПДн."""
+    """Страница контактов: форма обратной связи и список контактов из БД."""
 
     def get(self, request, *_args, **_kwargs):
-        form = ContactForm()
-        return render(request, "catalog/contacts.html", {"form": form})
+        contact_list = Contact.objects.all()
+        return render(
+            request,
+            "catalog/contacts.html",
+            {"contact_list": contact_list},
+        )
 
     def post(self, request, *_args, **_kwargs):
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Спасибо! Ваше сообщение принято.")
-            return redirect("catalog:contacts")
-        return render(request, "catalog/contacts.html", {"form": form})
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        message = request.POST.get("message", "").strip()
+        if name and email and message:
+            Contact.objects.create(name=name, email=email, message=message)
+        return redirect("catalog:contacts")
 
 
 class CatalogListView(ListView):
@@ -183,7 +100,7 @@ class CatalogListView(ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        queryset = Product.objects.filter(is_published=True).select_related("category")
+        queryset = Product.objects.select_related("category")
 
         category_id_raw = self.request.GET.get("category")
         if category_id_raw is not None:
@@ -223,7 +140,7 @@ class CategoryIndexView(View):
 
     def get(self, request, *_args, **_kwargs):
         category = Category.objects.first()
-        products = category.products.filter(is_published=True).order_by("name") if category else []
+        products = category.products.all().order_by("name") if category else []
         return render(
             request,
             "catalog/category.html",
@@ -240,5 +157,5 @@ class CategoryDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["products"] = self.object.products.filter(is_published=True).order_by("name")
+        context["products"] = self.object.products.all().order_by("name")
         return context

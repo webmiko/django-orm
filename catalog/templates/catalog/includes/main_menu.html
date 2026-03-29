@@ -24,9 +24,6 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'category' or request.resolver_match.url_name == 'category_detail' %}active{% endif %}" href="{% url 'catalog:category' %}">Категория</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'product_manage' or request.resolver_match.url_name == 'product_add' or request.resolver_match.url_name == 'product_edit' or request.resolver_match.url_name == 'product_delete' %}active{% endif %}" href="{% url 'catalog:product_manage' %}">Товары (CRUD)</a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'contacts' %}active{% endif %}" href="{% url 'catalog:contacts' %}">Контакты</a>
             </li>
             <li class="nav-item">
@@ -52,7 +49,7 @@
                         <i class="bi bi-person"></i>
                         <span>Профиль</span>
                     </a>
-                    <form method="post" action="{% url 'catalog:logout' %}" class="user-menu-logout-form">
+                    <form method="post" action="{% url 'admin:logout' %}" class="user-menu-logout-form">
                         {% csrf_token %}
                         <button type="submit" class="user-menu-item user-menu-item-btn">
                             <i class="bi bi-box-arrow-right"></i>
@@ -60,13 +57,9 @@
                         </button>
                     </form>
                     {% else %}
-                    <a href="{% url 'catalog:login' %}?next={{ request.get_full_path|urlencode }}" class="user-menu-item">
+                    <a href="{% url 'admin:login' %}?next={{ request.get_full_path|urlencode }}" class="user-menu-item">
                         <i class="bi bi-box-arrow-in-right"></i>
                         <span>Войти</span>
-                    </a>
-                    <a href="{% url 'catalog:register' %}" class="user-menu-item">
-                        <i class="bi bi-person-plus"></i>
-                        <span>Регистрация</span>
                     </a>
                     {% endif %}
                 </div>

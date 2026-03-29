@@ -1,6 +1,5 @@
 """Контроллеры приложения blog. CRUD для блоговой записи на CBV."""
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import F
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -11,7 +10,6 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .forms import BlogPostForm
 from .models import BlogPost
 
 
@@ -40,20 +38,20 @@ class PostDetailView(DetailView):
         return obj
 
 
-class PostCreateView(LoginRequiredMixin, CreateView):
-    """Создание новой блоговой записи (только для авторизованных пользователей)."""
+class PostCreateView(CreateView):
+    """Создание новой блоговой записи."""
 
     model = BlogPost
-    form_class = BlogPostForm
+    fields = ["title", "content", "preview", "is_published"]
     template_name = "blog/post_form.html"
     success_url = reverse_lazy("blog:post_list")
 
 
-class PostUpdateView(LoginRequiredMixin, UpdateView):
+class PostUpdateView(UpdateView):
     """Редактирование блоговой записи. После сохранения — редирект на страницу статьи."""
 
     model = BlogPost
-    form_class = BlogPostForm
+    fields = ["title", "content", "preview", "is_published"]
     template_name = "blog/post_form.html"
     context_object_name = "post"
 
@@ -61,7 +59,7 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
         return reverse("blog:post_detail", kwargs={"pk": self.object.pk})
 
 
-class PostDeleteView(LoginRequiredMixin, DeleteView):
+class PostDeleteView(DeleteView):
     """Удаление блоговой записи с подтверждением."""
 
     model = BlogPost
