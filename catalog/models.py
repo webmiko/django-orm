@@ -41,6 +41,7 @@ class Product(models.Model):
         decimal_places=2,
         default=0,
     )
+    is_published = models.BooleanField("показывать в каталоге", default=True)
     created_at = models.DateTimeField("дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("дата последнего изменения", auto_now=True)
 
