@@ -22,12 +22,30 @@
         <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
         <main class="main-content">
+            {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% block content %}{% endblock %}
         </main>
     </div>
 
-    <footer class="py-3 mt-auto">
-        <div class="container text-center"></div>
+    <footer class="site-footer py-4 mt-auto border-top">
+        <div class="container">
+            <nav class="site-footer-nav d-flex flex-wrap justify-content-center align-items-center gap-3 gap-md-4" aria-label="Навигация по сайту">
+                <a href="{% url 'catalog:home' %}"><i class="bi bi-house-door me-1" aria-hidden="true"></i>Главная</a>
+                <a href="{% url 'catalog:catalog' %}">Каталог</a>
+                <a href="{% url 'catalog:category' %}">Категории</a>
+                <a href="{% url 'catalog:contacts' %}">Контакты</a>
+                <a href="{% url 'blog:post_list' %}">Блог</a>
+            </nav>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
