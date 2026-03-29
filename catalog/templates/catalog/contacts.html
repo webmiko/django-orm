@@ -8,41 +8,49 @@
         <h1 class="mb-4">Контакты</h1>
         <div class="contacts-flex-container">
             <div class="contact-form-column">
-                <form method="post" action="{% url 'catalog:contacts' %}" class="contact-form">
+                <form method="post" action="{% url 'catalog:contacts' %}" class="contact-form" novalidate>
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="name" class="form-label">Имя</label>
-                        <input type="text" class="form-control contact-input" id="name" name="name" placeholder="Введите ваше имя" required>
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small">{{ form.name.errors|join:" " }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
-                        <label for="email" class="form-label">Почта</label>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                         <div class="input-group contact-email-group">
                             <span class="input-group-text contact-email-symbol">@</span>
-                            <input type="email" class="form-control contact-input" id="email" name="email" placeholder="example@mail.ru" required>
+                            {{ form.email }}
                         </div>
+                        {% if form.email.errors %}
+                        <div class="text-danger small">{{ form.email.errors|join:" " }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
-                        <label for="message" class="form-label">Сообщение</label>
-                        <textarea class="form-control contact-input" id="message" name="message" rows="6" placeholder="Введите ваше сообщение..." required></textarea>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                        <div class="text-danger small">{{ form.message.errors|join:" " }}</div>
+                        {% endif %}
                     </div>
+
                     <button type="submit" class="btn btn-primary contact-submit-btn">Отправить</button>
                 </form>
             </div>
             <div class="contact-info-column">
-                <h2>Наши контакты</h2>
+                <h2>Связаться с нами</h2>
                 <div class="contact-info-text">
-                    {% if contact_list %}
-                    <ul class="list-unstyled">
-                        {% for contact in contact_list %}
-                        <li class="mb-3">
-                            <strong>{{ contact.name }}</strong> — {{ contact.email }}
-                            <p class="mb-0 mt-1 text-muted">{{ contact.message }}</p>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p class="text-muted">Пока нет контактных данных. Заполните форму или добавьте контакты в админке.</p>
-                    {% endif %}
+                    <p class="text-muted mb-0">
+                        Заполните форму слева. Мы не публикуем персональные данные других пользователей на сайте;
+                        обращения доступны администратору в панели управления.
+                    </p>
                 </div>
             </div>
         </div>
