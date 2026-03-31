@@ -6,7 +6,7 @@
 
 - **Python** 3.10+
 - **Django** 5.x
-- **БД:** PostgreSQL (рекомендуется для разработки по заданию) или SQLite, если переменная `DB_NAME` в `.env` не задана
+- **БД:** PostgreSQL (основной вариант, если в `.env` задан `DB_NAME`) или SQLite (`db.sqlite3`), если `DB_NAME` не задан — запасной вариант без Postgres
 - **Медиа:** Pillow (превью блога, фото товаров)
 - **Стили:** Bootstrap 5, кастомный CSS в `catalog/static/catalog/`
 
@@ -19,24 +19,20 @@ cp .env.example .env   # при необходимости отредактир�
 
 ## База данных
 
-### PostgreSQL
+### PostgreSQL (рекомендуется)
 
 1. Установите и запустите PostgreSQL (например через Homebrew на macOS).
 2. Создайте пользователя и базу (пример в `.env.example`).
 3. В `.env` укажите `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`.
-4. Примените миграции:
+4. Примените миграции: `poetry run python manage.py migrate`.
 
-```bash
-poetry run python manage.py migrate
-```
+Для **тестов** Django создаёт отдельную БД с префиксом `test_`; пользователь PostgreSQL должен иметь право её создавать (`CREATEDB` или суперпользователь).
 
-### SQLite (быстрый старт без PostgreSQL)
+### SQLite (запасной вариант)
 
-Удалите или закомментируйте `DB_NAME` в `.env` (или не задавайте её). Django создаст файл `db.sqlite3` в корне проекта.
+Если Postgres недоступен, **удалите или закомментируйте `DB_NAME`** (и при необходимости строки `DB_USER` / `DB_PASSWORD` / …) в `.env`. Тогда используется файл **`db.sqlite3`** в корне проекта. Затем снова `poetry run python manage.py migrate`.
 
-```bash
-poetry run python manage.py migrate
-```
+Тесты в этом режиме тоже идут в SQLite (отдельная тестовая БД создаётся автоматически).
 
 ## Локальный сервер
 
@@ -130,6 +126,8 @@ CRUD товаров и CRUD блога защищены `LoginRequiredMixin`. `L
 ---
 
 ## Тесты и качество кода
+
+Запуск такой же, как для приложения: при настройке на PostgreSQL сервер должен быть доступен; в режиме SQLite (без `DB_NAME`) — достаточно файловой БД.
 
 ```bash
 poetry run pytest

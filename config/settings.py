@@ -1,8 +1,8 @@
 """
 Django settings for django-orm project.
 
-PostgreSQL: set DB_NAME (and optionally DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) in .env.
-If DB_NAME is not set, SQLite is used (development).
+PostgreSQL: задайте DB_NAME (и при необходимости DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) в .env.
+Если DB_NAME не задан — используется SQLite (файл db.sqlite3 в корне проекта), запасной вариант без Postgres.
 """
 
 import os
@@ -76,7 +76,7 @@ TEMPLATES = [
     },
 ]
 
-# Database: PostgreSQL if DB_NAME set, else SQLite
+# Database: PostgreSQL при заданном DB_NAME, иначе SQLite (запасной вариант)
 if os.getenv("DB_NAME"):
     DATABASES = {
         "default": {

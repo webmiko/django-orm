@@ -8,12 +8,13 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
+from config.form_mixins import StyleFormMixin
 from config.image_validation import validate_uploaded_image_file
 
 from .models import Contact, Product
 
 
-class SiteUserCreationForm(UserCreationForm):
+class SiteUserCreationForm(StyleFormMixin, UserCreationForm):
     """Регистрация пользователя сайта (Bootstrap-поля)."""
 
     class Meta(UserCreationForm.Meta):
@@ -25,35 +26,31 @@ class SiteUserCreationForm(UserCreationForm):
         self.fields["email"].required = False
         self.fields["username"].widget.attrs.update(
             {
-                "class": "form-control",
                 "placeholder": "Имя пользователя",
                 "autocomplete": "username",
             }
         )
         self.fields["email"].widget.attrs.update(
             {
-                "class": "form-control",
                 "placeholder": "Email (необязательно)",
                 "autocomplete": "email",
             }
         )
         self.fields["password1"].widget.attrs.update(
             {
-                "class": "form-control",
                 "autocomplete": "new-password",
                 "placeholder": "Пароль",
             }
         )
         self.fields["password2"].widget.attrs.update(
             {
-                "class": "form-control",
                 "autocomplete": "new-password",
                 "placeholder": "Повторите пароль",
             }
         )
 
 
-class SiteLoginForm(AuthenticationForm):
+class SiteLoginForm(StyleFormMixin, AuthenticationForm):
     """Вход на сайт (Bootstrap-поля)."""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -61,14 +58,12 @@ class SiteLoginForm(AuthenticationForm):
         self.fields["username"].label = "Имя пользователя"
         self.fields["username"].widget.attrs.update(
             {
-                "class": "form-control",
                 "autocomplete": "username",
                 "placeholder": "Логин",
             }
         )
         self.fields["password"].widget.attrs.update(
             {
-                "class": "form-control",
                 "autocomplete": "current-password",
                 "placeholder": "Пароль",
             }
@@ -81,7 +76,7 @@ def _text_contains_forbidden_word(text: str) -> bool:
     return any(word in lowered for word in settings.PRODUCT_FORBIDDEN_WORDS)
 
 
-class ContactForm(forms.ModelForm):
+class ContactForm(StyleFormMixin, forms.ModelForm):
     """Обратная связь на странице контактов (ModelForm + Bootstrap-атрибуты)."""
 
     class Meta:
@@ -118,7 +113,7 @@ class ContactForm(forms.ModelForm):
         )
 
 
-class ProductForm(forms.ModelForm):
+class ProductForm(StyleFormMixin, forms.ModelForm):
     """Карточка товара: поля модели, валидация (спам-слова, цена, изображение), стили Bootstrap."""
 
     class Meta:
@@ -144,21 +139,17 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["name"].widget.attrs.update(
             {
-                "class": "form-control",
                 "placeholder": "Название товара",
             }
         )
         self.fields["description"].widget.attrs.update(
             {
-                "class": "form-control",
                 "rows": 5,
                 "placeholder": "Описание товара",
             }
         )
-        self.fields["category"].widget.attrs.update({"class": "form-select"})
         self.fields["price"].widget.attrs.update(
             {
-                "class": "form-control",
                 "placeholder": "0.00",
                 "min": "0",
                 "step": "0.01",
@@ -166,12 +157,10 @@ class ProductForm(forms.ModelForm):
         )
         self.fields["image"].widget.attrs.update(
             {
-                "class": "form-control",
                 "accept": "image/jpeg,image/png,.jpg,.jpeg,.png",
             }
         )
         self.fields["image"].required = False
-        self.fields["is_published"].widget.attrs.update({"class": "form-check-input"})
 
     def clean_name(self) -> str:
         """Запрещённые подстроки в наименовании."""
