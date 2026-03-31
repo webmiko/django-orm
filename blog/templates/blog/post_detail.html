@@ -25,10 +25,12 @@
 
             <div class="post-content">{{ post.content|linebreaks }}</div>
 
+            {% if user.is_authenticated %}
             <div class="mt-4 pt-3 border-top">
                 <a href="{% url 'blog:post_edit' post.pk %}" class="btn btn-outline-secondary">Изменить</a>
                 <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-outline-danger">Удалить</a>
             </div>
+            {% endif %}
         </article>
     </div>
 </section>

@@ -4,12 +4,21 @@
 """
 
 from decimal import Decimal
+from io import BytesIO
+from unittest.mock import patch
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
+from catalog.forms import ProductForm
 from catalog.models import Category, Contact, Product
+
+User = get_user_model()
 
 # --- Views ---
 
@@ -65,13 +74,13 @@ class ProductDetailViewTest(TestCase):
 
 
 class ContactsViewTest(TestCase):
-    """Контакты: GET 200, POST с валидными данными создаёт запись и редирект, пустой POST — редирект без создания."""
+    """Контакты: форма в контексте, без публичного списка ПДн."""
 
     def test_contacts_get_returns_200(self):
         response = self.client.get(reverse("catalog:contacts"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "catalog/contacts.html")
-        self.assertIn("contact_list", response.context)
+        self.assertIn("form", response.context)
 
     def test_contacts_post_valid_creates_contact_and_redirects(self):
         response = self.client.post(
@@ -86,21 +95,23 @@ class ContactsViewTest(TestCase):
         self.assertEqual(c.email, "ivan@test.ru")
         self.assertEqual(c.message, "Текст сообщения")
 
-    def test_contacts_post_empty_redirects_without_creating(self):
+    def test_contacts_post_empty_shows_form_errors_without_creating(self):
         response = self.client.post(
             reverse("catalog:contacts"),
             {"name": "", "email": "", "message": ""},
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(Contact.objects.count(), 0)
+        self.assertFalse(response.context["form"].is_valid())
 
-    def test_contacts_post_partial_empty_does_not_create(self):
+    def test_contacts_post_partial_empty_shows_errors_without_creating(self):
         response = self.client.post(
             reverse("catalog:contacts"),
             {"name": "Иван", "email": "", "message": "Текст"},
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(Contact.objects.count(), 0)
+        self.assertFalse(response.context["form"].is_valid())
 
 
 class CatalogListViewTest(TestCase):
@@ -238,3 +249,294 @@ class CatalogUrlsTest(TestCase):
     def test_category_detail_url_resolves(self):
         url = reverse("catalog:category_detail", kwargs={"pk": 2})
         self.assertEqual(url, "/category/2/")
+
+    # --- CRUD товаров (маршруты) ---
+    def test_product_manage_url_resolves(self):
+        self.assertEqual(reverse("catalog:product_manage"), "/product/manage/")
+
+    def test_product_add_url_resolves(self):
+        self.assertEqual(reverse("catalog:product_add"), "/product/add/")
+
+    def test_product_edit_url_resolves(self):
+        self.assertEqual(reverse("catalog:product_edit", kwargs={"pk": 3}), "/product/3/edit/")
+
+    def test_product_delete_url_resolves(self):
+        self.assertEqual(reverse("catalog:product_delete", kwargs={"pk": 4}), "/product/4/delete/")
+
+    def test_auth_urls_resolves(self):
+        self.assertEqual(reverse("catalog:register"), "/accounts/register/")
+        self.assertEqual(reverse("catalog:login"), "/accounts/login/")
+        self.assertEqual(reverse("catalog:logout"), "/accounts/logout/")
+
+
+# --- Регистрация и вход на сайте ---
+
+
+class SiteAuthViewsTest(TestCase):
+    """Публичная регистрация и вход (не админка)."""
+
+    def test_register_get_200(self):
+        response = self.client.get(reverse("catalog:register"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "catalog/register.html")
+
+    def test_register_post_creates_user_and_logs_in(self):
+        response = self.client.post(
+            reverse("catalog:register"),
+            {
+                "username": "newshopuser",
+                "email": "u@example.com",
+                "password1": "complex-pass-99-x",
+                "password2": "complex-pass-99-x",
+            },
+        )
+        self.assertRedirects(response, reverse("catalog:home"))
+        self.assertTrue(User.objects.filter(username="newshopuser").exists())
+        u = User.objects.get(username="newshopuser")
+        self.assertEqual(u.email, "u@example.com")
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_login_get_200(self):
+        response = self.client.get(reverse("catalog:login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "catalog/login.html")
+
+    def test_login_post_succeeds(self):
+        User.objects.create_user(username="logintest", password="secret-abc-12")
+        response = self.client.post(
+            reverse("catalog:login"),
+            {"username": "logintest", "password": "secret-abc-12"},
+        )
+        self.assertRedirects(response, reverse("catalog:home"))
+        self.assertIn("_auth_user_id", self.client.session)
+
+
+# --- Валидация ProductForm ---
+
+
+class ProductFormValidationTest(TestCase):
+    """Запрещённые слова, цена, изображение (формат и размер)."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Категория", description="")
+
+    def test_default_forbidden_words_loaded(self):
+        for word in (
+            "казино",
+            "криптовалюта",
+            "крипта",
+            "биржа",
+            "дешево",
+            "бесплатно",
+            "обман",
+            "полиция",
+            "радар",
+        ):
+            self.assertIn(word, settings.PRODUCT_FORBIDDEN_WORDS)
+
+    @override_settings(PRODUCT_FORBIDDEN_WORDS=("уникальный_запрет_теста",))
+    def test_forbidden_list_overridable_via_settings(self):
+        form = ProductForm(
+            data={
+                "name": "Товар с уникальный_запрет_теста",
+                "description": "Ок",
+                "category": self.category.pk,
+                "price": "1.00",
+                "is_published": "on",
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+
+    def test_name_rejects_forbidden_substring_case_insensitive(self):
+        form = ProductForm(
+            data={
+                "name": "Товар КАЗИНО",
+                "description": "Нормальное описание",
+                "category": self.category.pk,
+                "price": "1.00",
+                "is_published": "on",
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+
+    def test_description_rejects_forbidden_word_separately(self):
+        form = ProductForm(
+            data={
+                "name": "Чистое имя",
+                "description": "Здесь слово радар",
+                "category": self.category.pk,
+                "price": "1.00",
+                "is_published": "on",
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("description", form.errors)
+
+    def test_negative_price_raises_validation_error(self):
+        form = ProductForm(
+            data={
+                "name": "Товар",
+                "description": "Описание",
+                "category": self.category.pk,
+                "price": "-1.00",
+                "is_published": "on",
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("price", form.errors)
+
+    def test_valid_minimal_data(self):
+        form = ProductForm(
+            data={
+                "name": "Товар",
+                "description": "Описание",
+                "category": self.category.pk,
+                "price": "0",
+                "is_published": "on",
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+
+    @staticmethod
+    def _tiny_png_upload() -> SimpleUploadedFile:
+        buf = BytesIO()
+        Image.new("RGB", (1, 1), color=(200, 10, 10)).save(buf, format="PNG")
+        return SimpleUploadedFile("one.png", buf.getvalue(), content_type="image/png")
+
+    def test_valid_png_upload(self):
+        form = ProductForm(
+            data={
+                "name": "С картинкой",
+                "description": "Ок",
+                "category": self.category.pk,
+                "price": "10.00",
+                "is_published": "on",
+            },
+            files={"image": self._tiny_png_upload()},
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_image_rejects_wrong_binary_magic(self):
+        bad = SimpleUploadedFile("fake.jpg", b"not-an-image", content_type="image/jpeg")
+        form = ProductForm(
+            data={
+                "name": "Товар",
+                "description": "Ок",
+                "category": self.category.pk,
+                "price": "1.00",
+                "is_published": "on",
+            },
+            files={"image": bad},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("image", form.errors)
+
+    def test_image_rejects_oversize_with_patched_limit(self):
+        png_header = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
+        biggish = SimpleUploadedFile("huge.png", png_header, content_type="image/png")
+        with patch("config.image_validation.MAX_UPLOAD_IMAGE_BYTES", 20):
+            form = ProductForm(
+                data={
+                    "name": "Товар",
+                    "description": "Ок",
+                    "category": self.category.pk,
+                    "price": "1.00",
+                    "is_published": "on",
+                },
+                files={"image": biggish},
+            )
+            self.assertFalse(form.is_valid())
+            self.assertIn("image", form.errors)
+
+
+# --- CRUD товаров (представления, доступ по логину) ---
+
+
+class ProductCrudViewsTest(TestCase):
+    """Страницы управления товарами — только для авторизованных пользователей."""
+
+    def setUp(self):
+        self.category = Category.objects.create(name="Кат", description="")
+        self.user = User.objects.create_user(username="cruduser", password="test-pass-123")
+
+    def test_product_manage_redirects_anonymous_to_login(self):
+        response = self.client.get(reverse("catalog:product_manage"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url)
+
+    def test_product_manage_get_200_when_authenticated(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("catalog:product_manage"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "catalog/product_manage_list.html")
+
+    def test_product_add_get_200_when_authenticated(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("catalog:product_add"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "catalog/product_form.html")
+
+    def test_product_add_post_creates_product(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("catalog:product_add"),
+            {
+                "name": "Новый товар",
+                "description": "Описание",
+                "category": str(self.category.pk),
+                "price": "99.50",
+                "is_published": "on",
+            },
+        )
+        self.assertRedirects(response, reverse("catalog:product_manage"))
+        self.assertEqual(Product.objects.count(), 1)
+        product = Product.objects.get()
+        self.assertEqual(product.name, "Новый товар")
+        self.assertTrue(product.is_published)
+
+    def test_product_edit_post_updates(self):
+        self.client.force_login(self.user)
+        product = Product.objects.create(
+            name="Старое",
+            description="",
+            category=self.category,
+            price=Decimal("1.00"),
+        )
+        response = self.client.post(
+            reverse("catalog:product_edit", kwargs={"pk": product.pk}),
+            {
+                "name": "Новое имя",
+                "description": "Текст",
+                "category": str(self.category.pk),
+                "price": "2.00",
+            },
+        )
+        self.assertRedirects(response, reverse("catalog:product_manage"))
+        product.refresh_from_db()
+        self.assertEqual(product.name, "Новое имя")
+        self.assertFalse(product.is_published)
+
+    def test_product_delete_post_removes(self):
+        self.client.force_login(self.user)
+        product = Product.objects.create(
+            name="Удалить",
+            description="",
+            category=self.category,
+            price=Decimal("0"),
+        )
+        response = self.client.post(reverse("catalog:product_delete", kwargs={"pk": product.pk}))
+        self.assertRedirects(response, reverse("catalog:product_manage"))
+        self.assertEqual(Product.objects.count(), 0)
+
+    def test_home_does_not_list_unpublished_products(self):
+        Product.objects.create(
+            name="Скрытый",
+            description="",
+            category=self.category,
+            price=Decimal("1"),
+            is_published=False,
+        )
+        response = self.client.get(reverse("catalog:home"))
+        self.assertEqual(len(response.context["latest_products"]), 0)

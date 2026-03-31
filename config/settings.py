@@ -1,14 +1,17 @@
 """
 Django settings for django-orm project.
 
-PostgreSQL: set DB_NAME (and optionally DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) in .env.
-If DB_NAME is not set, SQLite is used (development).
+PostgreSQL: задайте DB_NAME (и при необходимости DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) в .env.
+Если DB_NAME не задан — используется SQLite (файл db.sqlite3 в корне проекта), запасной вариант без Postgres.
 """
 
 import os
 from pathlib import Path
 
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
+
+from config.product_forbidden_words import load_product_forbidden_words
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -73,7 +76,7 @@ TEMPLATES = [
     },
 ]
 
-# Database: PostgreSQL if DB_NAME set, else SQLite
+# Database: PostgreSQL при заданном DB_NAME, иначе SQLite (запасной вариант)
 if os.getenv("DB_NAME"):
     DATABASES = {
         "default": {
@@ -111,3 +114,10 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Список запрещённых подстрок для ProductForm: файл config/forbidden_product_words.txt или .env — см. product_forbidden_words.py
+PRODUCT_FORBIDDEN_WORDS = load_product_forbidden_words(BASE_DIR)
+
+# Публичный вход на сайт (регистрация и CRUD для залогиненных пользователей).
+LOGIN_URL = reverse_lazy("catalog:login")
+LOGIN_REDIRECT_URL = reverse_lazy("catalog:home")
