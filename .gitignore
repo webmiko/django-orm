@@ -56,6 +56,9 @@ dmypy.json
 
 *.md
 !README.md
+# Вики проекта (исключение из правила *.md)
+!docs/wiki/
+!docs/wiki/**/*.md
 
 # Временные файлы
 *.tmp
