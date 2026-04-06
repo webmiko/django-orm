@@ -119,6 +119,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Список запрещённых подстрок для ProductForm: файл config/forbidden_product_words.txt или .env — см. product_forbidden_words.py
 PRODUCT_FORBIDDEN_WORDS = load_product_forbidden_words(BASE_DIR)
 
+AUTH_USER_MODEL = "users.User"
+
 # Публичный вход на сайт (регистрация и CRUD для залогиненных пользователей).
 LOGIN_URL = reverse_lazy("catalog:login")
 LOGIN_REDIRECT_URL = reverse_lazy("catalog:home")
