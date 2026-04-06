@@ -48,7 +48,7 @@
                 </a>
                 <div class="user-menu-dropdown" id="userMenuDropdown">
                     {% if user.is_authenticated %}
-                    <a href="{% url 'admin:password_change' %}" class="user-menu-item">
+                    <a href="{% url 'users:profile' %}" class="user-menu-item">
                         <i class="bi bi-person"></i>
                         <span>Профиль</span>
                     </a>

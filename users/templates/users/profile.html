@@ -1,0 +1,30 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Профиль — Мой сайт{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container" style="max-width: 520px;">
+        <h1 class="h2 fw-bold mb-4">Редактирование профиля</h1>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors|join:" " }}</div>{% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary w-100 mb-2">Сохранить</button>
+            <a href="{% url 'catalog:home' %}" class="btn btn-outline-secondary w-100">На главную</a>
+        </form>
+    </div>
+</section>
+{% endblock %}

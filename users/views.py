@@ -78,3 +78,20 @@ class UserLogoutView(LogoutView):
     """Выход (POST, как рекомендует Django)."""
 
     next_page = reverse_lazy("catalog:home")
+
+
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    """Редактирование профиля текущего пользователя."""
+
+    form_class = UserProfileForm
+    template_name = "users/profile.html"
+    success_url = reverse_lazy("users:profile")
+
+    def get_object(self, queryset=None):  # noqa: ARG002
+        """Возвращает текущего пользователя как редактируемый объект."""
+        return self.request.user
+
+    def form_valid(self, form):
+        """Сохраняет профиль и показывает сообщение об успехе."""
+        messages.success(self.request, MSG_PROFILE_UPDATED)
+        return super().form_valid(form)
