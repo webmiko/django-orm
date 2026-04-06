@@ -122,8 +122,9 @@ PRODUCT_FORBIDDEN_WORDS = load_product_forbidden_words(BASE_DIR)
 AUTH_USER_MODEL = "users.User"
 
 # Публичный вход на сайт (регистрация и CRUD для залогиненных пользователей).
-LOGIN_URL = reverse_lazy("catalog:login")
+LOGIN_URL = reverse_lazy("users:login")
 LOGIN_REDIRECT_URL = reverse_lazy("catalog:home")
+LOGOUT_REDIRECT_URL = reverse_lazy("catalog:home")
 
 # Email: SMTP из .env (этап 5 — приветственное письмо при регистрации).
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

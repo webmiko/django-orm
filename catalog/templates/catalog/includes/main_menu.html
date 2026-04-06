@@ -52,7 +52,7 @@
                         <i class="bi bi-person"></i>
                         <span>Профиль</span>
                     </a>
-                    <form method="post" action="{% url 'catalog:logout' %}" class="user-menu-logout-form">
+                    <form method="post" action="{% url 'users:logout' %}" class="user-menu-logout-form">
                         {% csrf_token %}
                         <button type="submit" class="user-menu-item user-menu-item-btn">
                             <i class="bi bi-box-arrow-right"></i>
@@ -60,7 +60,7 @@
                         </button>
                     </form>
                     {% else %}
-                    <a href="{% url 'catalog:login' %}?next={{ request.get_full_path|urlencode }}" class="user-menu-item">
+                    <a href="{% url 'users:login' %}?next={{ request.get_full_path|urlencode }}" class="user-menu-item">
                         <i class="bi bi-box-arrow-in-right"></i>
                         <span>Войти</span>
                     </a>

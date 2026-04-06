@@ -35,3 +35,30 @@ class UserRegisterForm(StyleFormMixin, UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class UserLoginForm(StyleFormMixin, AuthenticationForm):
+    """Вход на сайт: email + пароль (Bootstrap-стили).
+
+    AuthenticationForm внутри использует имя поля ``username``,
+    но при USERNAME_FIELD = "email" подставляется email-поле модели;
+    здесь меняем только лейбл и плейсхолдер под UI.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["username"].label = "Email"
+        self.fields["username"].widget.attrs.update(
+            {"placeholder": "Email", "autocomplete": "email"}
+        )
+        self.fields["password"].widget.attrs.update(
+            {"placeholder": "Пароль", "autocomplete": "current-password"}
+        )
+
+
+class UserProfileForm(StyleFormMixin, forms.ModelForm):
+    """Редактирование профиля (без смены пароля)."""
+
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "phone_number", "country", "avatar")

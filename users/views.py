@@ -64,3 +64,17 @@ class UserRegisterView(CreateView):
             )
         except Exception:
             logger.exception("Не удалось отправить приветственное письмо на %s", user_email)
+
+
+class UserLoginView(LoginView):
+    """Вход на сайт."""
+
+    form_class = UserLoginForm
+    template_name = "users/login.html"
+    redirect_authenticated_user = True
+
+
+class UserLogoutView(LogoutView):
+    """Выход (POST, как рекомендует Django)."""
+
+    next_page = reverse_lazy("catalog:home")

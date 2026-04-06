@@ -13,15 +13,11 @@ from .views import (
     ProductDetailView,
     ProductManageListView,
     ProductUpdateView,
-    SiteLoginView,
-    SiteLogoutView,
 )
 
 app_name = "catalog"
 
 urlpatterns = [
-    path("accounts/login/", SiteLoginView.as_view(), name="login"),
-    path("accounts/logout/", SiteLogoutView.as_view(), name="logout"),
     path("", HomeView.as_view(), name="home"),
     # Статические сегменты (`manage`, `add`, `edit`, `delete`) объявлены до `product/<pk>/`.
     path("product/manage/", ProductManageListView.as_view(), name="product_manage"),
