@@ -13,7 +13,7 @@
                 <i class="bi bi-plus-lg"></i> Новая запись
             </a>
             {% else %}
-            <a href="{% url 'catalog:login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-primary btn-sm">Войти, чтобы создавать записи</a>
+            <a href="{% url 'users:login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-primary btn-sm">Войти, чтобы создавать записи</a>
             {% endif %}
         </div>
 
