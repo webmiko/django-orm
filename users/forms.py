@@ -18,9 +18,7 @@ class UserRegisterForm(StyleFormMixin, UserCreationForm):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.fields["email"].widget.attrs.update(
-            {"placeholder": "Email", "autocomplete": "email"}
-        )
+        self.fields["email"].widget.attrs.update({"placeholder": "Email", "autocomplete": "email"})
         self.fields["password1"].widget.attrs.update(
             {"placeholder": "Пароль", "autocomplete": "new-password"}
         )

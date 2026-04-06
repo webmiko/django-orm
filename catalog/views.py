@@ -167,7 +167,9 @@ class CatalogListView(ListView):
         if price == "low":
             queryset = queryset.filter(price__lt=PRICE_LOW_THRESHOLD)
         elif price == "medium":
-            queryset = queryset.filter(price__gte=PRICE_LOW_THRESHOLD, price__lte=PRICE_HIGH_THRESHOLD)
+            queryset = queryset.filter(
+                price__gte=PRICE_LOW_THRESHOLD, price__lte=PRICE_HIGH_THRESHOLD
+            )
         elif price == "high":
             queryset = queryset.filter(price__gt=PRICE_HIGH_THRESHOLD)
 

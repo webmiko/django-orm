@@ -23,12 +23,8 @@ class BlogPostForm(StyleFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.fields["title"].widget.attrs.update(
-            {"placeholder": "Заголовок статьи"}
-        )
-        self.fields["content"].widget.attrs.update(
-            {"rows": 12, "placeholder": "Текст статьи"}
-        )
+        self.fields["title"].widget.attrs.update({"placeholder": "Заголовок статьи"})
+        self.fields["content"].widget.attrs.update({"rows": 12, "placeholder": "Текст статьи"})
         self.fields["preview"].widget.attrs.update(
             {
                 "accept": "image/jpeg,image/png,.jpg,.jpeg,.png",

@@ -313,7 +313,11 @@ class SiteAuthViewsTest(TestCase):
             self.client.logout()
             response = self.client.post(
                 reverse("users:register"),
-                {"email": email, "password1": "complex-pass-99-x", "password2": "complex-pass-99-x"},
+                {
+                    "email": email,
+                    "password1": "complex-pass-99-x",
+                    "password2": "complex-pass-99-x",
+                },
             )
             self.assertRedirects(response, reverse("catalog:home"))
         self.assertEqual(User.objects.count(), 2)
