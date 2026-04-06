@@ -13,7 +13,6 @@ from .views import (
     ProductDetailView,
     ProductManageListView,
     ProductUpdateView,
-    RegisterView,
     SiteLoginView,
     SiteLogoutView,
 )
@@ -21,7 +20,6 @@ from .views import (
 app_name = "catalog"
 
 urlpatterns = [
-    path("accounts/register/", RegisterView.as_view(), name="register"),
     path("accounts/login/", SiteLoginView.as_view(), name="login"),
     path("accounts/logout/", SiteLogoutView.as_view(), name="logout"),
     path("", HomeView.as_view(), name="home"),

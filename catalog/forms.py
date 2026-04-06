@@ -14,42 +14,6 @@ from config.image_validation import validate_uploaded_image_file
 from .models import Contact, Product
 
 
-class SiteUserCreationForm(StyleFormMixin, UserCreationForm):
-    """Регистрация пользователя сайта (Bootstrap-поля)."""
-
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ("username", "email")
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fields["email"].required = False
-        self.fields["username"].widget.attrs.update(
-            {
-                "placeholder": "Имя пользователя",
-                "autocomplete": "username",
-            }
-        )
-        self.fields["email"].widget.attrs.update(
-            {
-                "placeholder": "Email (необязательно)",
-                "autocomplete": "email",
-            }
-        )
-        self.fields["password1"].widget.attrs.update(
-            {
-                "autocomplete": "new-password",
-                "placeholder": "Пароль",
-            }
-        )
-        self.fields["password2"].widget.attrs.update(
-            {
-                "autocomplete": "new-password",
-                "placeholder": "Повторите пароль",
-            }
-        )
-
-
 class SiteLoginForm(StyleFormMixin, AuthenticationForm):
     """Вход на сайт (Bootstrap-поля)."""
 

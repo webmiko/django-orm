@@ -10,16 +10,14 @@ import logging
 from pathlib import Path
 
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from .forms import ContactForm, ProductForm, SiteLoginForm, SiteUserCreationForm
+from .forms import ContactForm, ProductForm, SiteLoginForm
 from .models import Category, Product
 
 ENCODING = "utf-8"
@@ -49,38 +47,6 @@ def _setup_logger() -> logging.Logger:
 
 
 logger = _setup_logger()
-
-
-class RegisterView(CreateView):
-    """Регистрация нового пользователя; после успеха — вход и редирект на главную."""
-
-    form_class = SiteUserCreationForm
-    template_name = "catalog/register.html"
-    success_url = reverse_lazy("catalog:home")
-
-    def form_valid(self, form):
-        self.object = form.save()
-        login(
-            self.request,
-            self.object,
-            backend="django.contrib.auth.backends.ModelBackend",
-        )
-        messages.success(self.request, "Регистрация прошла успешно. Добро пожаловать!")
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class SiteLoginView(LoginView):
-    """Вход на сайт (не админка)."""
-
-    form_class = SiteLoginForm
-    template_name = "catalog/login.html"
-    redirect_authenticated_user = True
-
-
-class SiteLogoutView(LogoutView):
-    """Выход (POST, как рекомендует Django)."""
-
-    next_page = reverse_lazy("catalog:home")
 
 
 class ProductDetailView(DetailView):
