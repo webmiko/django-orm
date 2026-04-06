@@ -53,7 +53,13 @@ class BlogCrudAuthTest(TestCase):
     """CRUD блога доступен только после входа."""
 
     def setUp(self):
-        self.user = User.objects.create_user(username="bloguser", password="secret-xyz-1")
+        self.user = User.objects.create_user(
+            username="bloguser", email="blog@test.ru", password="secret-xyz-1"
+        )
+
+    def test_post_list_ok_for_anonymous(self):
+        response = self.client.get(reverse("blog:post_list"))
+        self.assertEqual(response.status_code, 200)
 
     def test_create_redirects_anonymous(self):
         response = self.client.get(reverse("blog:post_create"))

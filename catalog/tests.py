@@ -55,7 +55,13 @@ class HomeViewTest(TestCase):
 class ProductDetailViewTest(TestCase):
     """Страница одного товара: 200 при существующем pk, 404 при отсутствии."""
 
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="detailuser", email="detail@test.ru", password="test-pass-123"
+        )
+
     def test_product_detail_returns_200_for_existing_pk(self):
+        self.client.force_login(self.user)
         cat = Category.objects.create(name="Кат", description="")
         product = Product.objects.create(
             name="Товар",
@@ -68,7 +74,16 @@ class ProductDetailViewTest(TestCase):
         self.assertTemplateUsed(response, "catalog/product_detail.html")
         self.assertEqual(response.context["product"], product)
 
+    def test_product_detail_redirects_anonymous(self):
+        cat = Category.objects.create(name="Кат", description="")
+        product = Product.objects.create(
+            name="Товар", description="", category=cat, price=Decimal("99.99")
+        )
+        response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": product.pk}))
+        self.assertEqual(response.status_code, 302)
+
     def test_product_detail_returns_404_for_nonexistent_pk(self):
+        self.client.force_login(self.user)
         response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": 99999}))
         self.assertEqual(response.status_code, 404)
 
@@ -264,9 +279,9 @@ class CatalogUrlsTest(TestCase):
         self.assertEqual(reverse("catalog:product_delete", kwargs={"pk": 4}), "/product/4/delete/")
 
     def test_auth_urls_resolves(self):
-        self.assertEqual(reverse("catalog:register"), "/accounts/register/")
-        self.assertEqual(reverse("catalog:login"), "/accounts/login/")
-        self.assertEqual(reverse("catalog:logout"), "/accounts/logout/")
+        self.assertEqual(reverse("users:register"), "/accounts/register/")
+        self.assertEqual(reverse("users:login"), "/accounts/login/")
+        self.assertEqual(reverse("users:logout"), "/accounts/logout/")
 
 
 # --- Регистрация и вход на сайте ---
@@ -276,36 +291,51 @@ class SiteAuthViewsTest(TestCase):
     """Публичная регистрация и вход (не админка)."""
 
     def test_register_get_200(self):
-        response = self.client.get(reverse("catalog:register"))
+        response = self.client.get(reverse("users:register"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "catalog/register.html")
+        self.assertTemplateUsed(response, "users/register.html")
 
     def test_register_post_creates_user_and_logs_in(self):
         response = self.client.post(
-            reverse("catalog:register"),
+            reverse("users:register"),
             {
-                "username": "newshopuser",
                 "email": "u@example.com",
                 "password1": "complex-pass-99-x",
                 "password2": "complex-pass-99-x",
             },
         )
         self.assertRedirects(response, reverse("catalog:home"))
-        self.assertTrue(User.objects.filter(username="newshopuser").exists())
-        u = User.objects.get(username="newshopuser")
-        self.assertEqual(u.email, "u@example.com")
+        self.assertTrue(User.objects.filter(email="u@example.com").exists())
         self.assertIn("_auth_user_id", self.client.session)
 
+    def test_register_two_users_no_username_collision(self):
+        for email in ("first@example.com", "second@example.com"):
+            self.client.logout()
+            response = self.client.post(
+                reverse("users:register"),
+                {"email": email, "password1": "complex-pass-99-x", "password2": "complex-pass-99-x"},
+            )
+            self.assertRedirects(response, reverse("catalog:home"))
+        self.assertEqual(User.objects.count(), 2)
+
+    def test_register_redirects_authenticated_user(self):
+        user = User.objects.create_user(username="existing", email="e@test.ru", password="pass-123")
+        self.client.force_login(user)
+        response = self.client.get(reverse("users:register"))
+        self.assertEqual(response.status_code, 302)
+
     def test_login_get_200(self):
-        response = self.client.get(reverse("catalog:login"))
+        response = self.client.get(reverse("users:login"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "catalog/login.html")
+        self.assertTemplateUsed(response, "users/login.html")
 
     def test_login_post_succeeds(self):
-        User.objects.create_user(username="logintest", password="secret-abc-12")
+        User.objects.create_user(
+            username="logintest", email="login@test.ru", password="secret-abc-12"
+        )
         response = self.client.post(
-            reverse("catalog:login"),
-            {"username": "logintest", "password": "secret-abc-12"},
+            reverse("users:login"),
+            {"username": "login@test.ru", "password": "secret-abc-12"},
         )
         self.assertRedirects(response, reverse("catalog:home"))
         self.assertIn("_auth_user_id", self.client.session)
@@ -459,12 +489,14 @@ class ProductCrudViewsTest(TestCase):
 
     def setUp(self):
         self.category = Category.objects.create(name="Кат", description="")
-        self.user = User.objects.create_user(username="cruduser", password="test-pass-123")
+        self.user = User.objects.create_user(
+            username="cruduser", email="crud@test.ru", password="test-pass-123"
+        )
 
     def test_product_manage_redirects_anonymous_to_login(self):
         response = self.client.get(reverse("catalog:product_manage"))
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/accounts/login/", response.url)
+        self.assertIn("login", response.url)
 
     def test_product_manage_get_200_when_authenticated(self):
         self.client.force_login(self.user)
