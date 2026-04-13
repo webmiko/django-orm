@@ -124,7 +124,6 @@ class ProductForm(StyleFormMixin, forms.ModelForm):
             "image",
             "category",
             "price",
-            "is_published",
         )
         labels = {
             "name": "Наименование",
@@ -132,7 +131,6 @@ class ProductForm(StyleFormMixin, forms.ModelForm):
             "image": "Изображение",
             "category": "Категория",
             "price": "Цена, ₽",
-            "is_published": "Показывать в каталоге",
         }
 
     def __init__(self, *args, **kwargs) -> None:
