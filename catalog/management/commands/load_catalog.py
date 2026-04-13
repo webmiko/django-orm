@@ -1,11 +1,13 @@
 """Кастомная команда загрузки тестовых данных каталога из фикстур."""
 
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from catalog.models import Category, Product
 
-FIXTURE_NAME = "catalog_data"
+FIXTURE_DATA = "catalog_data"
+FIXTURE_USER = "catalog_user"
 
 
 class Command(BaseCommand):
@@ -20,9 +22,14 @@ class Command(BaseCommand):
         Category.objects.all().delete()
         self.stdout.write(self.style.SUCCESS("Данные удалены."))
 
-        self.stdout.write(f"Загрузка фикстуры {FIXTURE_NAME}...")
+        User = get_user_model()
+        if not User.objects.exists():
+            self.stdout.write(f"Загрузка пользователя-владельца ({FIXTURE_USER})...")
+            call_command("loaddata", FIXTURE_USER, verbosity=1)
+
+        self.stdout.write(f"Загрузка фикстуры {FIXTURE_DATA}...")
         try:
-            call_command("loaddata", FIXTURE_NAME, verbosity=1)
+            call_command("loaddata", FIXTURE_DATA, verbosity=1)
             self.stdout.write(self.style.SUCCESS("Фикстура успешно загружена."))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Ошибка загрузки: {e}"))

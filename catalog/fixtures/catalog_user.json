@@ -1,0 +1,20 @@
+[
+{
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$1000000$J8MHG7dIkfaegU1FEeSUuk$jzHg2jxSOGTyMwohSaBCkqN2zW2xNq/yuHmB+TLBajk=",
+        "last_login": null,
+        "is_superuser": true,
+        "username": "fixture_admin",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-03-02T12:00:00Z",
+        "groups": [],
+        "user_permissions": []
+    }
+}
+]

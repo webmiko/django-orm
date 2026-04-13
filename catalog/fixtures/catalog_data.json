@@ -31,7 +31,9 @@
         "description": "Умный телефон",
         "image": "",
         "category": 1,
+        "owner": 1,
         "price": "29999.99",
+        "is_published": true,
         "created_at": "2026-03-02T12:10:41.886Z",
         "updated_at": "2026-03-02T12:10:41.887Z"
     }
@@ -44,7 +46,9 @@
         "description": "Портативный компьютер",
         "image": "",
         "category": 1,
+        "owner": 1,
         "price": "89999.00",
+        "is_published": true,
         "created_at": "2026-03-02T12:10:41.890Z",
         "updated_at": "2026-03-02T12:10:41.890Z"
     }
@@ -57,7 +61,9 @@
         "description": "Белый хлеб",
         "image": "",
         "category": 3,
+        "owner": 1,
         "price": "65.00",
+        "is_published": true,
         "created_at": "2026-03-02T12:10:41.890Z",
         "updated_at": "2026-03-02T12:10:41.893Z"
     }

@@ -32,9 +32,26 @@
                     <dd class="col-sm-8">{{ product.updated_at|date:"d.m.Y H:i" }}</dd>
                 </dl>
                 {% if user.is_authenticated %}
-                <div class="d-flex flex-wrap gap-2 mt-4">
+                <div class="d-flex flex-wrap gap-2 mt-4 align-items-center">
+                    {% if user == product.owner %}
                     <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-outline-primary btn-sm">Редактировать</a>
+                    {% endif %}
+                    {% if user == product.owner or perms.catalog.delete_product %}
                     <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger btn-sm">Удалить</a>
+                    {% endif %}
+                    {% if perms.catalog.can_unpublish_product %}
+                        {% if product.is_published %}
+                        <form method="post" action="{% url 'catalog:product_unpublish' product.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">Снять с публикации</button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'catalog:product_publish' product.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">Опубликовать</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
                     <a href="{% url 'catalog:product_manage' %}" class="btn btn-outline-secondary btn-sm">Все товары</a>
                 </div>
                 {% endif %}
