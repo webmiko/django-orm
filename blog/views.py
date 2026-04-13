@@ -1,6 +1,6 @@
 """Контроллеры приложения blog. CRUD для блоговой записи на CBV."""
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models import F
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -40,18 +40,20 @@ class PostDetailView(DetailView):
         return obj
 
 
-class PostCreateView(LoginRequiredMixin, CreateView):
-    """Создание новой блоговой записи (только для авторизованных пользователей)."""
+class PostCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    """Создание записи: группа «Контент-менеджер» (право blog.add_blogpost)."""
 
+    permission_required = "blog.add_blogpost"
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/post_form.html"
     success_url = reverse_lazy("blog:post_list")
 
 
-class PostUpdateView(LoginRequiredMixin, UpdateView):
-    """Редактирование блоговой записи. После сохранения — редирект на страницу статьи."""
+class PostUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    """Редактирование: право blog.change_blogpost."""
 
+    permission_required = "blog.change_blogpost"
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/post_form.html"
@@ -61,9 +63,10 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
         return reverse("blog:post_detail", kwargs={"pk": self.object.pk})
 
 
-class PostDeleteView(LoginRequiredMixin, DeleteView):
-    """Удаление блоговой записи с подтверждением."""
+class PostDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """Удаление: право blog.delete_blogpost."""
 
+    permission_required = "blog.delete_blogpost"
     model = BlogPost
     template_name = "blog/post_confirm_delete.html"
     context_object_name = "post"

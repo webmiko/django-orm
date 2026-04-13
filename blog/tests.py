@@ -4,6 +4,8 @@ from io import BytesIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -50,10 +52,21 @@ class BlogPostFormImageTest(TestCase):
 
 
 class BlogCrudAuthTest(TestCase):
-    """CRUD блога доступен только после входа."""
+    """CRUD блога: контент-менеджер (права blog.*), не только вход."""
 
     def setUp(self):
         self.user = User.objects.create_user(username="bloguser", password="secret-xyz-1")
+        self._grant_blog(self.user)
+
+    def _grant_blog(self, user: User) -> None:
+        from blog.models import BlogPost
+
+        ct = ContentType.objects.get_for_model(BlogPost)
+        perms = Permission.objects.filter(
+            content_type=ct,
+            codename__in=("add_blogpost", "change_blogpost", "delete_blogpost"),
+        )
+        user.user_permissions.set(perms)
 
     def test_create_redirects_anonymous(self):
         response = self.client.get(reverse("blog:post_create"))
@@ -73,3 +86,24 @@ class BlogCrudAuthTest(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(BlogPost.objects.count(), 1)
+
+    def test_create_forbidden_for_user_without_blog_permissions(self):
+        plain = User.objects.create_user(username="plain_blog", password="pw")
+        self.client.force_login(plain)
+        response = self.client.get(reverse("blog:post_create"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_product_moderator_without_blog_perm_gets_403_on_blog_create(self):
+        from catalog.models import Product
+
+        mod = User.objects.create_user(username="mod_blog", password="pw")
+        ct = ContentType.objects.get_for_model(Product)
+        mod.user_permissions.set(
+            Permission.objects.filter(
+                content_type=ct,
+                codename__in=("can_unpublish_product", "delete_product"),
+            ),
+        )
+        self.client.force_login(mod)
+        response = self.client.get(reverse("blog:post_create"))
+        self.assertEqual(response.status_code, 403)
