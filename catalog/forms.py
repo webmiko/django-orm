@@ -4,70 +4,12 @@ from decimal import Decimal
 
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
 from config.form_mixins import StyleFormMixin
 from config.image_validation import validate_uploaded_image_file
 
 from .models import Contact, Product
-
-
-class SiteUserCreationForm(StyleFormMixin, UserCreationForm):
-    """Регистрация пользователя сайта (Bootstrap-поля)."""
-
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ("username", "email")
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fields["email"].required = False
-        self.fields["username"].widget.attrs.update(
-            {
-                "placeholder": "Имя пользователя",
-                "autocomplete": "username",
-            }
-        )
-        self.fields["email"].widget.attrs.update(
-            {
-                "placeholder": "Email (необязательно)",
-                "autocomplete": "email",
-            }
-        )
-        self.fields["password1"].widget.attrs.update(
-            {
-                "autocomplete": "new-password",
-                "placeholder": "Пароль",
-            }
-        )
-        self.fields["password2"].widget.attrs.update(
-            {
-                "autocomplete": "new-password",
-                "placeholder": "Повторите пароль",
-            }
-        )
-
-
-class SiteLoginForm(StyleFormMixin, AuthenticationForm):
-    """Вход на сайт (Bootstrap-поля)."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fields["username"].label = "Имя пользователя"
-        self.fields["username"].widget.attrs.update(
-            {
-                "autocomplete": "username",
-                "placeholder": "Логин",
-            }
-        )
-        self.fields["password"].widget.attrs.update(
-            {
-                "autocomplete": "current-password",
-                "placeholder": "Пароль",
-            }
-        )
 
 
 def _text_contains_forbidden_word(text: str) -> bool:

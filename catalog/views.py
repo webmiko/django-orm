@@ -10,21 +10,22 @@ import logging
 from pathlib import Path
 
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, LogoutView
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from .forms import ContactForm, ProductForm, SiteLoginForm, SiteUserCreationForm
+from .forms import ContactForm, ProductForm
 from .models import Category, Product
 
 ENCODING = "utf-8"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 LAST_PRODUCTS_LIMIT = 5
+
+PRICE_LOW_THRESHOLD = 1000
+PRICE_HIGH_THRESHOLD = 5000
+MSG_CONTACT_SUCCESS = "Спасибо! Ваше сообщение принято."
 
 
 def _setup_logger() -> logging.Logger:
@@ -51,39 +52,7 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
-class RegisterView(CreateView):
-    """Регистрация нового пользователя; после успеха — вход и редирект на главную."""
-
-    form_class = SiteUserCreationForm
-    template_name = "catalog/register.html"
-    success_url = reverse_lazy("catalog:home")
-
-    def form_valid(self, form):
-        self.object = form.save()
-        login(
-            self.request,
-            self.object,
-            backend="django.contrib.auth.backends.ModelBackend",
-        )
-        messages.success(self.request, "Регистрация прошла успешно. Добро пожаловать!")
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class SiteLoginView(LoginView):
-    """Вход на сайт (не админка)."""
-
-    form_class = SiteLoginForm
-    template_name = "catalog/login.html"
-    redirect_authenticated_user = True
-
-
-class SiteLogoutView(LogoutView):
-    """Выход (POST, как рекомендует Django)."""
-
-    next_page = reverse_lazy("catalog:home")
-
-
-class ProductDetailView(DetailView):
+class ProductDetailView(LoginRequiredMixin, DetailView):
     """Страница одного товара: все данные продукта по pk."""
 
     model = Product
@@ -170,7 +139,7 @@ class ContactsView(View):
         form = ContactForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Спасибо! Ваше сообщение принято.")
+            messages.success(request, MSG_CONTACT_SUCCESS)
             return redirect("catalog:contacts")
         return render(request, "catalog/contacts.html", {"form": form})
 
@@ -196,11 +165,13 @@ class CatalogListView(ListView):
 
         price = self.request.GET.get("price")
         if price == "low":
-            queryset = queryset.filter(price__lt=1000)
+            queryset = queryset.filter(price__lt=PRICE_LOW_THRESHOLD)
         elif price == "medium":
-            queryset = queryset.filter(price__gte=1000, price__lte=5000)
+            queryset = queryset.filter(
+                price__gte=PRICE_LOW_THRESHOLD, price__lte=PRICE_HIGH_THRESHOLD
+            )
         elif price == "high":
-            queryset = queryset.filter(price__gt=5000)
+            queryset = queryset.filter(price__gt=PRICE_HIGH_THRESHOLD)
 
         sort = self.request.GET.get("sort", "name")
         if sort == "price-asc":

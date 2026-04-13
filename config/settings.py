@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "catalog",
     "blog",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -118,6 +119,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Список запрещённых подстрок для ProductForm: файл config/forbidden_product_words.txt или .env — см. product_forbidden_words.py
 PRODUCT_FORBIDDEN_WORDS = load_product_forbidden_words(BASE_DIR)
 
+AUTH_USER_MODEL = "users.User"
+
 # Публичный вход на сайт (регистрация и CRUD для залогиненных пользователей).
-LOGIN_URL = reverse_lazy("catalog:login")
+LOGIN_URL = reverse_lazy("users:login")
 LOGIN_REDIRECT_URL = reverse_lazy("catalog:home")
+LOGOUT_REDIRECT_URL = reverse_lazy("catalog:home")
+
+# Email: SMTP из .env (этап 5 — приветственное письмо при регистрации).
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.yandex.ru")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True").lower() == "true"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)

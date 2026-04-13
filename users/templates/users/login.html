@@ -6,9 +6,9 @@
 <section class="py-5">
     <div class="container" style="max-width: 420px;">
         <h1 class="h2 fw-bold mb-4">Вход</h1>
-        <p class="text-muted small mb-4">Нет аккаунта? <a href="{% url 'catalog:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Зарегистрироваться</a></p>
+        <p class="text-muted small mb-4">Нет аккаунта? <a href="{% url 'users:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Зарегистрироваться</a></p>
 
-        <form method="post" action="{% url 'catalog:login' %}" novalidate>
+        <form method="post" action="{% url 'users:login' %}" novalidate>
             {% csrf_token %}
             {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
