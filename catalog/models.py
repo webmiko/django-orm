@@ -1,5 +1,6 @@
 """Catalog models."""
 
+from django.conf import settings
 from django.core.validators import MaxLengthValidator
 from django.db import models
 
@@ -35,19 +36,35 @@ class Product(models.Model):
         related_name="products",
         verbose_name="категория",
     )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="owned_products",
+        verbose_name="владелец",
+    )
     price = models.DecimalField(
         "цена за покупку",
         max_digits=10,
         decimal_places=2,
         default=0,
     )
-    is_published = models.BooleanField("показывать в каталоге", default=True)
+    is_published = models.BooleanField(
+        "показывать в каталоге",
+        default=False,
+        help_text="Новые товары по умолчанию не опубликованы до модерации.",
+    )
     created_at = models.DateTimeField("дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("дата последнего изменения", auto_now=True)
 
     class Meta:
         verbose_name = "продукт"
         verbose_name_plural = "продукты"
+        permissions = [
+            (
+                "can_unpublish_product",
+                "Может отменять публикацию продукта",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name
