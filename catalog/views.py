@@ -11,15 +11,17 @@ from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .forms import ContactForm, ProductForm, SiteLoginForm, SiteUserCreationForm
+from .mixins import ProductDeletePermissionMixin, ProductOwnerRequiredMixin
 from .models import Category, Product
 
 ENCODING = "utf-8"
@@ -84,14 +86,22 @@ class SiteLogoutView(LogoutView):
 
 
 class ProductDetailView(DetailView):
-    """Страница одного товара: все данные продукта по pk."""
+    """Страница одного товара. Черновики (не в каталоге) — только владельцу и модераторам."""
 
     model = Product
     template_name = "catalog/product_detail.html"
     context_object_name = "product"
 
     def get_queryset(self):
-        return Product.objects.select_related("category")
+        base = Product.objects.select_related("category", "owner")
+        user = self.request.user
+        if not user.is_authenticated:
+            return base.filter(is_published=True)
+        if user.has_perm("catalog.can_unpublish_product") or user.has_perm(
+            "catalog.delete_product",
+        ):
+            return base
+        return base.filter(Q(is_published=True) | Q(owner=user))
 
 
 # --- Управление товарами (CRUD) ---
@@ -105,7 +115,13 @@ class ProductManageListView(LoginRequiredMixin, ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        return Product.objects.select_related("category").order_by("name")
+        qs = Product.objects.select_related("category", "owner").order_by("name")
+        user = self.request.user
+        if user.has_perm("catalog.can_unpublish_product") or user.has_perm(
+            "catalog.delete_product",
+        ):
+            return qs
+        return qs.filter(owner=user)
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
@@ -116,9 +132,13 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     template_name = "catalog/product_form.html"
     success_url = reverse_lazy("catalog:product_manage")
 
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
-    """Редактирование продукта через ProductForm."""
+
+class ProductUpdateView(LoginRequiredMixin, ProductOwnerRequiredMixin, UpdateView):
+    """Редактирование продукта только владельцем."""
 
     model = Product
     form_class = ProductForm
@@ -126,13 +146,39 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("catalog:product_manage")
 
 
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
-    """Удаление продукта с подтверждением (шаблон product_confirm_delete.html)."""
+class ProductDeleteView(LoginRequiredMixin, ProductDeletePermissionMixin, DeleteView):
+    """Удаление: владелец или модератор с правом delete_product."""
 
     model = Product
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("catalog:product_manage")
     context_object_name = "product"
+
+
+class ProductPublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """Публикация продукта (модератор, то же право, что и для снятия с публикации)."""
+
+    permission_required = "catalog.can_unpublish_product"
+
+    def post(self, request, pk: int, *_args, **_kwargs):
+        product = get_object_or_404(Product, pk=pk)
+        product.is_published = True
+        product.save(update_fields=["is_published", "updated_at"])
+        messages.success(request, "Продукт опубликован в каталоге.")
+        return redirect("catalog:product_manage")
+
+
+class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """Снятие продукта с публикации (кастомное право can_unpublish_product)."""
+
+    permission_required = "catalog.can_unpublish_product"
+
+    def post(self, request, pk: int, *_args, **_kwargs):
+        product = get_object_or_404(Product, pk=pk)
+        product.is_published = False
+        product.save(update_fields=["is_published", "updated_at"])
+        messages.success(request, "Продукт снят с публикации.")
+        return redirect("catalog:product_manage")
 
 
 class HomeView(View):

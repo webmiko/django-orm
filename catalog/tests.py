@@ -9,6 +9,8 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -19,6 +21,20 @@ from catalog.forms import ProductForm
 from catalog.models import Category, Contact, Product
 
 User = get_user_model()
+
+
+def _product_ct() -> ContentType:
+    return ContentType.objects.get_for_model(Product)
+
+
+def _grant_moderator_catalog_perms(user: User) -> None:
+    ct = _product_ct()
+    perms = Permission.objects.filter(
+        content_type=ct,
+        codename__in=("can_unpublish_product", "delete_product"),
+    )
+    user.user_permissions.set(perms)
+
 
 # --- Views ---
 
@@ -40,6 +56,7 @@ class HomeViewTest(TestCase):
         self.assertEqual(len(response.context["latest_products"]), 0)
 
     def test_home_shows_up_to_five_products(self):
+        owner = User.objects.create_user(username="home_owner", password="x")
         cat = Category.objects.create(name="Тест", description="")
         for i in range(7):
             Product.objects.create(
@@ -47,6 +64,8 @@ class HomeViewTest(TestCase):
                 description="",
                 category=cat,
                 price=Decimal("100"),
+                owner=owner,
+                is_published=True,
             )
         response = self.client.get(reverse("catalog:home"))
         self.assertEqual(len(response.context["latest_products"]), 5)
@@ -56,12 +75,15 @@ class ProductDetailViewTest(TestCase):
     """Страница одного товара: 200 при существующем pk, 404 при отсутствии."""
 
     def test_product_detail_returns_200_for_existing_pk(self):
+        owner = User.objects.create_user(username="pd_owner", password="x")
         cat = Category.objects.create(name="Кат", description="")
         product = Product.objects.create(
             name="Товар",
             description="Описание",
             category=cat,
             price=Decimal("99.99"),
+            owner=owner,
+            is_published=True,
         )
         response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": product.pk}))
         self.assertEqual(response.status_code, 200)
@@ -71,6 +93,35 @@ class ProductDetailViewTest(TestCase):
     def test_product_detail_returns_404_for_nonexistent_pk(self):
         response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": 99999}))
         self.assertEqual(response.status_code, 404)
+
+    def test_product_detail_hides_unpublished_from_anonymous(self):
+        owner = User.objects.create_user(username="draft_owner", password="x")
+        cat = Category.objects.create(name="К", description="")
+        product = Product.objects.create(
+            name="Черновик",
+            description="",
+            category=cat,
+            price=Decimal("1"),
+            owner=owner,
+            is_published=False,
+        )
+        response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": product.pk}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_product_detail_shows_unpublished_to_owner(self):
+        owner = User.objects.create_user(username="draft_owner2", password="x")
+        cat = Category.objects.create(name="К2", description="")
+        product = Product.objects.create(
+            name="Черновик2",
+            description="",
+            category=cat,
+            price=Decimal("1"),
+            owner=owner,
+            is_published=False,
+        )
+        self.client.force_login(owner)
+        response = self.client.get(reverse("catalog:product_detail", kwargs={"pk": product.pk}))
+        self.assertEqual(response.status_code, 200)
 
 
 class ContactsViewTest(TestCase):
@@ -137,8 +188,16 @@ class CategoryIndexViewTest(TestCase):
         self.assertEqual(list(response.context["products"]), [])
 
     def test_category_index_with_category_returns_products(self):
+        owner = User.objects.create_user(username="ci_owner", password="x")
         cat = Category.objects.create(name="Кат", description="")
-        Product.objects.create(name="Товар", description="", category=cat, price=0)
+        Product.objects.create(
+            name="Товар",
+            description="",
+            category=cat,
+            price=0,
+            owner=owner,
+            is_published=True,
+        )
         response = self.client.get(reverse("catalog:category"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["category"], cat)
@@ -180,23 +239,36 @@ class CategoryModelTest(TestCase):
 class ProductModelTest(TestCase):
     """Модель Product: создание с категорией, __str__, цена по умолчанию."""
 
+    def setUp(self):
+        self.owner = User.objects.create_user(username="prod_owner", password="x")
+
     def test_product_str(self):
         cat = Category.objects.create(name="Кат", description="")
-        product = Product(name="Телефон", category=cat)
+        product = Product(name="Телефон", category=cat, owner_id=self.owner.pk)
         self.assertEqual(str(product), "Телефон")
 
     def test_product_requires_category(self):
         cat = Category.objects.create(name="Кат", description="")
         product = Product.objects.create(
-            name="Товар", description="", category=cat, price=Decimal("0")
+            name="Товар",
+            description="",
+            category=cat,
+            price=Decimal("0"),
+            owner=self.owner,
         )
         self.assertEqual(product.category, cat)
         self.assertEqual(product.price, Decimal("0"))
 
     def test_product_default_price(self):
         cat = Category.objects.create(name="Кат", description="")
-        product = Product.objects.create(name="Товар", description="", category=cat)
+        product = Product.objects.create(
+            name="Товар",
+            description="",
+            category=cat,
+            owner=self.owner,
+        )
         self.assertEqual(product.price, Decimal("0"))
+        self.assertFalse(product.is_published)
 
 
 class ContactModelTest(TestCase):
@@ -267,6 +339,15 @@ class CatalogUrlsTest(TestCase):
         self.assertEqual(reverse("catalog:register"), "/accounts/register/")
         self.assertEqual(reverse("catalog:login"), "/accounts/login/")
         self.assertEqual(reverse("catalog:logout"), "/accounts/logout/")
+
+    def test_product_publish_unpublish_urls_resolve(self):
+        self.assertEqual(
+            reverse("catalog:product_publish", kwargs={"pk": 5}), "/product/5/publish/"
+        )
+        self.assertEqual(
+            reverse("catalog:product_unpublish", kwargs={"pk": 6}),
+            "/product/6/unpublish/",
+        )
 
 
 # --- Регистрация и вход на сайте ---
@@ -342,7 +423,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Ок",
                 "category": self.category.pk,
                 "price": "1.00",
-                "is_published": "on",
             }
         )
         self.assertFalse(form.is_valid())
@@ -355,7 +435,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Нормальное описание",
                 "category": self.category.pk,
                 "price": "1.00",
-                "is_published": "on",
             }
         )
         self.assertFalse(form.is_valid())
@@ -368,7 +447,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Здесь слово радар",
                 "category": self.category.pk,
                 "price": "1.00",
-                "is_published": "on",
             }
         )
         self.assertFalse(form.is_valid())
@@ -381,7 +459,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Описание",
                 "category": self.category.pk,
                 "price": "-1.00",
-                "is_published": "on",
             }
         )
         self.assertFalse(form.is_valid())
@@ -394,7 +471,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Описание",
                 "category": self.category.pk,
                 "price": "0",
-                "is_published": "on",
             }
         )
         self.assertTrue(form.is_valid(), form.errors)
@@ -412,7 +488,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Ок",
                 "category": self.category.pk,
                 "price": "10.00",
-                "is_published": "on",
             },
             files={"image": self._tiny_png_upload()},
         )
@@ -426,7 +501,6 @@ class ProductFormValidationTest(TestCase):
                 "description": "Ок",
                 "category": self.category.pk,
                 "price": "1.00",
-                "is_published": "on",
             },
             files={"image": bad},
         )
@@ -443,7 +517,6 @@ class ProductFormValidationTest(TestCase):
                     "description": "Ок",
                     "category": self.category.pk,
                     "price": "1.00",
-                    "is_published": "on",
                 },
                 files={"image": biggish},
             )
@@ -487,14 +560,14 @@ class ProductCrudViewsTest(TestCase):
                 "description": "Описание",
                 "category": str(self.category.pk),
                 "price": "99.50",
-                "is_published": "on",
             },
         )
         self.assertRedirects(response, reverse("catalog:product_manage"))
         self.assertEqual(Product.objects.count(), 1)
         product = Product.objects.get()
         self.assertEqual(product.name, "Новый товар")
-        self.assertTrue(product.is_published)
+        self.assertEqual(product.owner, self.user)
+        self.assertFalse(product.is_published)
 
     def test_product_edit_post_updates(self):
         self.client.force_login(self.user)
@@ -503,6 +576,7 @@ class ProductCrudViewsTest(TestCase):
             description="",
             category=self.category,
             price=Decimal("1.00"),
+            owner=self.user,
         )
         response = self.client.post(
             reverse("catalog:product_edit", kwargs={"pk": product.pk}),
@@ -525,6 +599,7 @@ class ProductCrudViewsTest(TestCase):
             description="",
             category=self.category,
             price=Decimal("0"),
+            owner=self.user,
         )
         response = self.client.post(reverse("catalog:product_delete", kwargs={"pk": product.pk}))
         self.assertRedirects(response, reverse("catalog:product_manage"))
@@ -536,7 +611,82 @@ class ProductCrudViewsTest(TestCase):
             description="",
             category=self.category,
             price=Decimal("1"),
+            owner=self.user,
             is_published=False,
         )
         response = self.client.get(reverse("catalog:home"))
         self.assertEqual(len(response.context["latest_products"]), 0)
+
+    def test_product_edit_forbidden_for_non_owner(self):
+        other = User.objects.create_user(username="other", password="pw")
+        self.client.force_login(other)
+        product = Product.objects.create(
+            name="Чужой",
+            description="",
+            category=self.category,
+            price=Decimal("1"),
+            owner=self.user,
+        )
+        response = self.client.post(
+            reverse("catalog:product_edit", kwargs={"pk": product.pk}),
+            {
+                "name": "Взлом",
+                "description": "",
+                "category": str(self.category.pk),
+                "price": "1.00",
+            },
+        )
+        self.assertEqual(response.status_code, 403)
+        product.refresh_from_db()
+        self.assertEqual(product.name, "Чужой")
+
+    def test_moderator_can_delete_foreign_product(self):
+        mod = User.objects.create_user(username="mod", password="pw")
+        _grant_moderator_catalog_perms(mod)
+        product = Product.objects.create(
+            name="Чужой",
+            description="",
+            category=self.category,
+            price=Decimal("1"),
+            owner=self.user,
+        )
+        self.client.force_login(mod)
+        response = self.client.post(
+            reverse("catalog:product_delete", kwargs={"pk": product.pk}),
+        )
+        self.assertRedirects(response, reverse("catalog:product_manage"))
+        self.assertEqual(Product.objects.count(), 0)
+
+    def test_unpublish_forbidden_without_permission(self):
+        product = Product.objects.create(
+            name="Публичный",
+            description="",
+            category=self.category,
+            price=Decimal("1"),
+            owner=self.user,
+            is_published=True,
+        )
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("catalog:product_unpublish", kwargs={"pk": product.pk}),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_unpublish_allowed_for_moderator(self):
+        mod = User.objects.create_user(username="mod2", password="pw")
+        _grant_moderator_catalog_perms(mod)
+        product = Product.objects.create(
+            name="Публичный",
+            description="",
+            category=self.category,
+            price=Decimal("1"),
+            owner=self.user,
+            is_published=True,
+        )
+        self.client.force_login(mod)
+        response = self.client.post(
+            reverse("catalog:product_unpublish", kwargs={"pk": product.pk}),
+        )
+        self.assertRedirects(response, reverse("catalog:product_manage"))
+        product.refresh_from_db()
+        self.assertFalse(product.is_published)
