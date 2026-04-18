@@ -1,5 +1,6 @@
 """Blog models."""
 
+from django.conf import settings
 from django.db import models
 
 
@@ -17,6 +18,14 @@ class BlogPost(models.Model):
     created_at = models.DateTimeField("дата создания", auto_now_add=True)
     is_published = models.BooleanField("признак публикации", default=False)
     view_count = models.PositiveIntegerField("количество просмотров", default=0)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="blog_posts",
+        verbose_name="автор",
+    )
 
     class Meta:
         verbose_name = "блоговая запись"
