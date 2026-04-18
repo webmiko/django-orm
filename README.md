@@ -138,4 +138,3 @@ poetry run ruff format --check .
 
 - [Архитектура проекта](docs/wiki/README.md)
 - [Отчёт по безопасности](docs/wiki/security.md)
-- [План разработки: разграничение прав](docs/ПЛАН-И-ПРОГРЕСС-РАЗГРАНИЧЕНИЕ-ПРАВ.md)
