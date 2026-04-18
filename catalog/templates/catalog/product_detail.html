@@ -33,8 +33,22 @@
                 </dl>
                 {% if user.is_authenticated %}
                 <div class="d-flex flex-wrap gap-2 mt-4">
+                    {% if product.owner == user %}
                     <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-outline-primary btn-sm">Редактировать</a>
+                    {% endif %}
+                    {% if product.owner == user or perms.catalog.delete_product %}
                     <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger btn-sm">Удалить</a>
+                    {% endif %}
+                    {% if perms.catalog.can_unpublish_product %}
+                    <form method="post" action="{% url 'catalog:product_publish' product.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        {% if product.is_published %}
+                        <button type="submit" class="btn btn-outline-warning btn-sm">Снять с публикации</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-outline-success btn-sm">Опубликовать</button>
+                        {% endif %}
+                    </form>
+                    {% endif %}
                     <a href="{% url 'catalog:product_manage' %}" class="btn btn-outline-secondary btn-sm">Все товары</a>
                 </div>
                 {% endif %}

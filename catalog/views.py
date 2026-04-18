@@ -4,18 +4,22 @@
 Все представления реализованы на основе классов (CBV).
 
 CRUD товаров: ModelForm и дженерики CreateView / UpdateView / DeleteView.
+Разграничение прав: владелец (owner), модератор (can_unpublish_product, delete_product).
 """
 
 import logging
 from pathlib import Path
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Q
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.cache import cache_page
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .forms import ContactForm, ProductForm
@@ -56,34 +60,84 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
+class ProductOwnerRequiredMixin(UserPassesTestMixin):
+    """Доступ только владельцу товара."""
+
+    def test_func(self):
+        product = self.get_object()
+        return product.owner == self.request.user
+
+
+class ProductOwnerOrModeratorDeleteMixin(UserPassesTestMixin):
+    """Удаление: владелец или пользователь с правом delete_product."""
+
+    def test_func(self):
+        product = self.get_object()
+        user = self.request.user
+        return product.owner == user or user.has_perm("catalog.delete_product")
+
+
 @method_decorator(cache_page(PRODUCT_DETAIL_CACHE_TIMEOUT), name="dispatch")
-class ProductDetailView(LoginRequiredMixin, DetailView):
-    """Страница одного товара: все данные продукта по pk."""
+class ProductDetailView(DetailView):
+    """Страница одного товара.
+
+    Опубликованные — доступны всем (в т.ч. анонимам).
+    Черновики — только владельцу и модераторам.
+    """
 
     model = Product
     template_name = "catalog/product_detail.html"
     context_object_name = "product"
 
     def get_queryset(self):
-        return Product.objects.select_related("category")
+        qs = Product.objects.select_related("category")
+        user = self.request.user
+        if user.is_authenticated:
+            return qs.filter(
+                Q(is_published=True) | Q(owner=user) | Q(pk__in=self._moderator_qs(qs))
+            )
+        return qs.filter(is_published=True)
+
+    def _moderator_qs(self, qs):
+        """PK черновиков, видимых модераторам."""
+        if self.request.user.has_perm("catalog.can_unpublish_product"):
+            return qs.filter(is_published=False).values("pk")
+        return Product.objects.none().values("pk")
 
 
 # --- Управление товарами (CRUD) ---
 
 
 class ProductManageListView(LoginRequiredMixin, ListView):
-    """Список всех товаров со ссылками на просмотр, редактирование и удаление."""
+    """Управление товарами: владелец видит свои, модератор — все."""
 
     model = Product
     template_name = "catalog/product_manage_list.html"
     context_object_name = "products"
 
     def get_queryset(self):
-        return Product.objects.select_related("category").order_by("name")
+        user = self.request.user
+        qs = Product.objects.select_related("category").order_by("name")
+        if user.has_perm("catalog.can_unpublish_product"):
+            return qs
+        return qs.filter(owner=user)
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
-    """Создание продукта через ProductForm."""
+    """Создание продукта: owner = текущий пользователь."""
+
+    model = Product
+    form_class = ProductForm
+    template_name = "catalog/product_form.html"
+    success_url = reverse_lazy("catalog:product_manage")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class ProductUpdateView(LoginRequiredMixin, ProductOwnerRequiredMixin, UpdateView):
+    """Редактирование продукта — только владельцем."""
 
     model = Product
     form_class = ProductForm
@@ -91,22 +145,25 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("catalog:product_manage")
 
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
-    """Редактирование продукта через ProductForm."""
-
-    model = Product
-    form_class = ProductForm
-    template_name = "catalog/product_form.html"
-    success_url = reverse_lazy("catalog:product_manage")
-
-
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
-    """Удаление продукта с подтверждением (шаблон product_confirm_delete.html)."""
+class ProductDeleteView(LoginRequiredMixin, ProductOwnerOrModeratorDeleteMixin, DeleteView):
+    """Удаление продукта: владелец или модератор с правом delete_product."""
 
     model = Product
     template_name = "catalog/product_confirm_delete.html"
     success_url = reverse_lazy("catalog:product_manage")
     context_object_name = "product"
+
+
+class ProductPublishView(LoginRequiredMixin, View):
+    """POST-действие: опубликовать / снять с публикации (модератор)."""
+
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        if not request.user.has_perm("catalog.can_unpublish_product"):
+            return HttpResponseForbidden()
+        product.is_published = not product.is_published
+        product.save(update_fields=["is_published"])
+        return redirect("catalog:product_manage")
 
 
 class HomeView(View):
