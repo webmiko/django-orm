@@ -13,16 +13,20 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from .forms import ContactForm, ProductForm
 from .models import Category, Product
+from .services import get_products_by_category
 
 ENCODING = "utf-8"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 LAST_PRODUCTS_LIMIT = 5
 
+PRODUCT_DETAIL_CACHE_TIMEOUT = 60 * 15
 PRICE_LOW_THRESHOLD = 1000
 PRICE_HIGH_THRESHOLD = 5000
 MSG_CONTACT_SUCCESS = "Спасибо! Ваше сообщение принято."
@@ -52,6 +56,7 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 
+@method_decorator(cache_page(PRODUCT_DETAIL_CACHE_TIMEOUT), name="dispatch")
 class ProductDetailView(LoginRequiredMixin, DetailView):
     """Страница одного товара: все данные продукта по pk."""
 
@@ -194,7 +199,7 @@ class CategoryIndexView(View):
 
     def get(self, request, *_args, **_kwargs):
         category = Category.objects.first()
-        products = category.products.filter(is_published=True).order_by("name") if category else []
+        products = get_products_by_category(category.pk) if category else []
         return render(
             request,
             "catalog/category.html",
@@ -211,5 +216,5 @@ class CategoryDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["products"] = self.object.products.filter(is_published=True).order_by("name")
+        context["products"] = get_products_by_category(self.object.pk)
         return context

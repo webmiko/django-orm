@@ -56,6 +56,9 @@ class ProductDetailViewTest(TestCase):
     """Страница одного товара: 200 при существующем pk, 404 при отсутствии."""
 
     def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
         self.user = User.objects.create_user(
             username="detailuser", email="detail@test.ru", password="test-pass-123"
         )
@@ -157,7 +160,7 @@ class CategoryIndexViewTest(TestCase):
         response = self.client.get(reverse("catalog:category"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["category"], cat)
-        self.assertEqual(response.context["products"].count(), 1)
+        self.assertEqual(len(response.context["products"]), 1)
 
 
 class CategoryDetailViewTest(TestCase):
