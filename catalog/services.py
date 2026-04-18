@@ -18,11 +18,12 @@ def get_products_by_category(category_id: int) -> list[Product]:
     При включённом кеше (``CACHE_ENABLED``) результат сохраняется в Redis
     на ``PRODUCTS_CACHE_TIMEOUT`` секунд.
     """
+    cache_key = f"products_category_{category_id}"
+
     if settings.CACHE_ENABLED:
-        cache_key = f"products_category_{category_id}"
-        products = cache.get(cache_key)
-        if products is not None:
-            return products
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
 
     products = list(
         Product.objects.filter(
