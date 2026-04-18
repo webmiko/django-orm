@@ -16,17 +16,16 @@ from config.product_forbidden_words import load_product_forbidden_words
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-_SECRET_KEY_DEV = "django-insecure-dev-only-change-in-production"
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = _SECRET_KEY_DEV
+        from django.core.management.utils import get_random_secret_key
+
+        SECRET_KEY = get_random_secret_key()
     else:
         raise RuntimeError("Set SECRET_KEY in environment (e.g. .env)")
-if not DEBUG and SECRET_KEY == _SECRET_KEY_DEV:
-    raise RuntimeError("Do not use the default SECRET_KEY in production. Set SECRET_KEY in .env")
 
 
 def _parse_allowed_hosts(value: str) -> list[str]:

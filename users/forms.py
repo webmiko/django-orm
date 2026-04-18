@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from config.form_mixins import StyleFormMixin
+from config.image_validation import validate_uploaded_image_file
 
 User = get_user_model()
 
@@ -60,3 +61,18 @@ class UserProfileForm(StyleFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "phone_number", "country", "avatar")
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["avatar"].widget.attrs.update(
+            {"accept": "image/jpeg,image/png,.jpg,.jpeg,.png"}
+        )
+        self.fields["avatar"].required = False
+
+    def clean_avatar(self):
+        """JPEG/PNG, лимит размера — аналогично ProductForm и BlogPostForm."""
+        avatar = self.cleaned_data.get("avatar")
+        if not avatar:
+            return avatar
+        validate_uploaded_image_file(avatar)
+        return avatar

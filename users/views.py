@@ -63,7 +63,7 @@ class UserRegisterView(CreateView):
                 recipient_list=[user_email],
             )
         except Exception:
-            logger.exception("Не удалось отправить приветственное письмо на %s", user_email)
+            logger.exception("Не удалось отправить приветственное письмо")
 
 
 class UserLoginView(LoginView):
