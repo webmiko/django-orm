@@ -11,6 +11,7 @@
 - **БД:** PostgreSQL (основной вариант, если в `.env` задан `DB_NAME`) или SQLite (`db.sqlite3`), если `DB_NAME` не задан — запасной вариант без Postgres
 - **Медиа:** Pillow (превью блога, фото товаров)
 - **Стили:** Bootstrap 5, кастомный CSS в `catalog/static/catalog/`
+- **Кеширование:** Redis (`django.core.cache.backends.redis.RedisCache`), управляется через `CACHE_ENABLED` в `.env`
 - **Пользователи:** `AUTH_USER_MODEL = users.User` (`USERNAME_FIELD = email`), маршруты под префиксом `/accounts/`
 
 ## Установка и окружение
@@ -21,6 +22,30 @@ cp .env.example .env   # при необходимости отредактир�
 ```
 
 В `.env` можно задать **SMTP** (`EMAIL_HOST`, `EMAIL_HOST_USER`, …) — после регистрации отправляется приветственное письмо; при ошибке доставки регистрация не отменяется (ошибка пишется в лог).
+
+## Redis и кеширование
+
+Для кеширования используется **Redis**. Установка (macOS):
+
+```bash
+brew install redis
+redis-server            # запустить сервер
+redis-cli ping          # ожидаем PONG
+```
+
+В `.env` задайте:
+
+```
+CACHE_ENABLED=True
+REDIS_URL=redis://127.0.0.1:6379/1
+```
+
+При `CACHE_ENABLED=False` (или если переменная не задана) кеширование отключено — приложение работает без Redis.
+
+**Что кешируется:**
+
+- **Страница карточки товара** — `cache_page` (серверный кеш, 15 мин).
+- **Список товаров в категории** — низкоуровневое кеширование в сервисной функции `get_products_by_category` (`cache.get` / `cache.set`, 15 мин).
 
 ## База данных
 
