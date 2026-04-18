@@ -1,6 +1,11 @@
-"""Контроллеры приложения blog. CRUD для блоговой записи на CBV."""
+"""Контроллеры приложения blog.
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+CRUD для блоговой записи на CBV.
+Права: создание/редактирование/удаление — только пользователи с правами blog.*_blogpost
+(группа «Контент-менеджер»).
+"""
+
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import F
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -27,11 +32,14 @@ class PostListView(ListView):
 
 
 class PostDetailView(DetailView):
-    """Страница одной статьи. При просмотре увеличивается счётчик просмотров."""
+    """Страница одной статьи (только опубликованные)."""
 
     model = BlogPost
     template_name = "blog/post_detail.html"
     context_object_name = "post"
+
+    def get_queryset(self):
+        return BlogPost.objects.filter(is_published=True)
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
@@ -40,31 +48,38 @@ class PostDetailView(DetailView):
         return obj
 
 
-class PostCreateView(LoginRequiredMixin, CreateView):
-    """Создание новой блоговой записи (только для авторизованных пользователей)."""
+class PostCreateView(PermissionRequiredMixin, CreateView):
+    """Создание блоговой записи (право blog.add_blogpost)."""
 
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/post_form.html"
     success_url = reverse_lazy("blog:post_list")
+    permission_required = "blog.add_blogpost"
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
-class PostUpdateView(LoginRequiredMixin, UpdateView):
-    """Редактирование блоговой записи. После сохранения — редирект на страницу статьи."""
+class PostUpdateView(PermissionRequiredMixin, UpdateView):
+    """Редактирование блоговой записи (право blog.change_blogpost)."""
 
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/post_form.html"
     context_object_name = "post"
+    permission_required = "blog.change_blogpost"
 
     def get_success_url(self):
         return reverse("blog:post_detail", kwargs={"pk": self.object.pk})
 
 
-class PostDeleteView(LoginRequiredMixin, DeleteView):
-    """Удаление блоговой записи с подтверждением."""
+class PostDeleteView(PermissionRequiredMixin, DeleteView):
+    """Удаление блоговой записи (право blog.delete_blogpost)."""
 
     model = BlogPost
     template_name = "blog/post_confirm_delete.html"
     context_object_name = "post"
     success_url = reverse_lazy("blog:post_list")
+    permission_required = "blog.delete_blogpost"
