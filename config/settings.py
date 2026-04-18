@@ -121,6 +121,17 @@ PRODUCT_FORBIDDEN_WORDS = load_product_forbidden_words(BASE_DIR)
 
 AUTH_USER_MODEL = "users.User"
 
+# Redis: кеширование (CACHE_ENABLED=True в .env включает RedisCache).
+CACHE_ENABLED = os.getenv("CACHE_ENABLED", "False").lower() == "true"
+
+if CACHE_ENABLED:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
+        }
+    }
+
 # Публичный вход на сайт (регистрация и CRUD для залогиненных пользователей).
 LOGIN_URL = reverse_lazy("users:login")
 LOGIN_REDIRECT_URL = reverse_lazy("catalog:home")
